@@ -1,0 +1,76 @@
+Period
+ - schedule :: Schedule
+ - year :: string ”2019”
+ - day :: string mon|tue|wed|thu|fri|sat|sun
+ - oclock :: string :: ”00:00” ”23:59”
+ - recur :: int
+
+Schedule
+ - hostname :: string
+ - timezone :: string
+ - hostId :: string, host sub-claim
+ - handle :: string, client handle
+ - start :: string <year>/<week>
+ - end :: string <year>/<week>
+ - periods :: [Period]
+
+GET {client_id}/schedule
+  - [string] :: List of handles (up to client to 
+
+ScheduleHandle
+ - handle :: string
+ - host :: string
+
+-> OK 200 [ScheduleHandle]
+claim: client_id
+
+
+POST {client_id}/schedule/{handle}
+  - start :: string <year>/<week>
+  - end :: string <year>/<week>
+  - name :: string
+
+-> OK 201 /schedule/name
+claims: client_id
+
+GET {client_id}/schedule/{handle}
+ -> 200 Schedule
+
+POST {client_id}/schedule/{handle}
+ - period :: [Period]
+
+PeriodHandle
+ - year :: string ”2019”
+ - day :: string mon|tue|wed|thu|fri|sat|sun
+ - oclock :: string :: ”00:00” ”23:59”
+
+DELETE {client_id}/schedule/{handle}
+ - PeriodHandle
+
+MeetRequest
+- start :: Unix-timestamp
+- start :: Unix-timestamp
+
+GET {client_id}/schedule/{handle}/meets
+ <- MeetRequest
+ -> MeetResponse
+
+MeetResponse :: [Meet]
+
+Meet
+ - start :: Unix-timestamp, meeting start
+ - dur :: int, length in minutes
+ - id :: <host>/<schedule>/<year>/<week>/<day>/<oclock>, unique for every meet, post to this to book
+
+POST bookings/{meetId}
+ <- sub-claim
+ -> 201
+
+GET bookings/{meetId}
+ <- sub-claim
+ -> 200 [Booking]
+
+Booking :: 
+ - id :: <host>/<schedulehandle>/<year>/<week>/<day>/<oclock>
+ - host :: host-id
+
