@@ -7,6 +7,8 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Logging;
+using Serilog;
 
 namespace http
 {
@@ -19,6 +21,12 @@ namespace http
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+                .UseStartup<Startup>()
+                .UseSerilog((context, configuration) =>
+                    {
+                        configuration
+                            .ReadFrom.Configuration(context.Configuration);
+                        IdentityModelEventSource.ShowPII = true;
+                    });
     }
 }

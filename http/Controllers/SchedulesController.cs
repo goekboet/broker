@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace http.Controllers
@@ -60,6 +61,7 @@ namespace http.Controllers
     public class SchedulesController : ControllerBase
     {
         // GET a
+        [Authorize("schedule")]
         [HttpGet("schedules")]  
         public ActionResult<IEnumerable<object>> Get()
         {
@@ -73,6 +75,7 @@ namespace http.Controllers
             };
         }
 
+        [Authorize("schedule")]
         [HttpPost("schedules")]
         public ActionResult<string> AddSchedule(
             [FromBody] ScheduleEntry entry)
@@ -80,6 +83,7 @@ namespace http.Controllers
             return Created($"schedules/{entry.Handle}", new object());
         }
 
+        [Authorize("schedule")]
         [HttpDelete("schedules/{handle}")]
         public ActionResult DeleteSchedule(
             string handle)
@@ -87,6 +91,7 @@ namespace http.Controllers
             return Ok();   
         }
 
+        [Authorize("schedule")]
         [HttpGet("schedules/{handle}")]
         public ActionResult<object> GetSchedule(string handle)
         {
@@ -113,6 +118,7 @@ namespace http.Controllers
         }
 
         // POST api/values
+        [Authorize("schedule")]
         [HttpPost("schedules/{handle}/periods")]
         public ActionResult AddPeriod(
             string handle,
@@ -121,12 +127,14 @@ namespace http.Controllers
             return Created($"schedules/{handle}", "someId" );
         }
 
+        [Authorize("schedule")]
         [HttpDelete("schedules/{handle}/periods/{id}")]
         public ActionResult RemovePeriod(string handle, string id)
         {
             return NoContent();
         }
 
+        [AllowAnonymous]
         [HttpGet("schedules/{handle}/meets")]
         public ActionResult<object> GetMeets(string handle)
         {
@@ -141,6 +149,7 @@ namespace http.Controllers
             };
         }
 
+        [Authorize("call")]
         [HttpGet("schedules/{handle}/bookings")]
         public ActionResult<object> ListBookings(
             string handle)
@@ -151,6 +160,7 @@ namespace http.Controllers
             };
         }
 
+        [Authorize("call")]
         [HttpPost("schedules/{handle}/bookings")]
         public ActionResult AddBooking(
             string handle,
@@ -159,6 +169,7 @@ namespace http.Controllers
             return Ok();
         }
 
+        [Authorize("call")]
         [HttpDelete("schedules/{handle}/bookings/{id}")]
         public ActionResult DeleteBooking(
             string handle,
@@ -167,6 +178,7 @@ namespace http.Controllers
             return Ok();   
         }
 
+        [Authorize("call")]
         [HttpGet("schedules/{handle}/bookings/{meetId}")]
         public ActionResult<object> GetBooking()
         {
