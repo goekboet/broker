@@ -13,6 +13,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="1.3.2" />
     <PackageReference Include="MSTest.TestFramework" Version="1.3.2" />
     <PackageReference Include="IdentityModel" Version="3.10.10" />
+    <ProjectReference Include="..\scheduling\scheduling.csproj" />
   </ItemGroup>
 
   <ItemGroup>
