@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "makeMeets", "makeMeets\make
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scheduling", "scheduling\scheduling.csproj", "{351A5768-E605-4807-BE3C-52F1E10755D3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test.db", "test.db\test.db.csproj", "{18DC137D-8F67-43CE-B79D-544F21E29A51}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +74,17 @@ Global
 		{351A5768-E605-4807-BE3C-52F1E10755D3}.Release|x64.Build.0 = Release|Any CPU
 		{351A5768-E605-4807-BE3C-52F1E10755D3}.Release|x86.ActiveCfg = Release|Any CPU
 		{351A5768-E605-4807-BE3C-52F1E10755D3}.Release|x86.Build.0 = Release|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Debug|x64.Build.0 = Debug|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Debug|x86.Build.0 = Debug|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Release|x64.ActiveCfg = Release|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Release|x64.Build.0 = Release|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Release|x86.ActiveCfg = Release|Any CPU
+		{18DC137D-8F67-43CE-B79D-544F21E29A51}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
