@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Npgsql;
 using postgres;
 
 namespace test.db
@@ -10,10 +9,7 @@ namespace test.db
     [TestClass]
     public class ConnectionTest
     {
-        [TestMethod]
-        public async Task TestConnection()
-        {
-            var user = new PgresUser(
+        public static PgresUser Broker => new PgresUser(
                 "localhost",
                 "5432",
                 "broker",
@@ -21,8 +17,11 @@ namespace test.db
                 "meets"
             );
 
+        [TestMethod]
+        public async Task GetTimes()
+        {
             var r = 0;
-            using (var c = user.ToConnection())
+            using (var c = Broker.ToConnection())
             {
                 var cmd = c.SelectUnbookedTimesInWindow(
                     Guid.Parse("100c899e-d945-4bfc-95ef-891587ae686b"),
@@ -30,7 +29,22 @@ namespace test.db
                     1568584800000
                 );
 
-                var rs = await cmd.GetResults(PGres.ToMeet);
+                var rs = await cmd.SubmitQuery(PGres.ToMeet);
+                r = rs.Count();
+            }
+
+            Assert.IsTrue(r > 0);
+        }
+
+        [TestMethod]
+        public async Task GetHosts()
+        {
+            var r = 0;
+            using (var c = Broker.ToConnection())
+            {
+                var cmd = c.ListHosts();
+
+                var rs = await cmd.SubmitQuery(PGres.ToHost);
                 r = rs.Count();
             }
 

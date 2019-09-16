@@ -4,191 +4,115 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PublicCallers.Scheduling;
 
 namespace http.Controllers
 {
-    public static class MockValues
+    public class BookRequest
     {
-        public static long SomeStartDate = new DateTimeOffset(
-            new DateTime(2019, 12, 24),
-            TimeSpan.Zero).ToUnixTimeSeconds();
-    }
-    
-    public class Schedule
-    {
-        public string TimeZone { get; }
-        public string ClientId { get; }
-        public string Handle { get; }
-        public string Start { get; }
-        public string End { get; }
-        public Period[] Periods { get; }
-    }
-
-    public class ScheduleEntry
-    {
-        public string TimeZone { get; set; }
-        public string Handle { get; set; }
-        public string Start { get; set; }
-        public string End { get; set; }
-    }
-
-    public class Period
-    {
-        public string Year { get; set; }
-        public string Day { get; set; }
-        public string OClock { get; set; }
-        public int Recur { get; set; }
-    }
-
-    public class PeriodHandle
-    {
-        public string Year { get; set; }
-        public string Day { get; set; }
-        public string OClock { get; set; }
-    }
-
-    public class Meet
-    {
-        public long Start { get; }
-    }
-
-    public class Booking
-    {
-        public string Meet { get; }
+        public Guid HostId { get;set;}
+        public long Start { get;set;}
     }
 
     [ApiController]
     public class SchedulesController : ControllerBase
     {
+        IMeetsRepository _repo;
+        public SchedulesController(
+            IMeetsRepository repo
+        ) 
+        {
+            _repo = repo;
+        }
         // GET a
-        [Authorize("schedule")]
-        [HttpGet("schedules")]  
-        public ActionResult<IEnumerable<object>> Get()
+        [AllowAnonymous]
+        [HttpGet("hosts")]  
+        public async Task<ActionResult<IEnumerable<object>>> GetHosts()
         {
-            return new [] 
-            { 
-                new  
-                { 
-                    handle = "someHandle",
-                    hostId = "someHostId"
-                }
-            };
-        }
+            var r = await _repo.GetHosts();
 
-        [Authorize("schedule")]
-        [HttpPost("schedules")]
-        public ActionResult<string> AddSchedule(
-            [FromBody] ScheduleEntry entry)
-        {
-            return Created($"schedules/{entry.Handle}", new object());
-        }
-
-        [Authorize("schedule")]
-        [HttpDelete("schedules/{handle}")]
-        public ActionResult DeleteSchedule(
-            string handle)
-        {
-            return Ok();   
-        }
-
-        [Authorize("schedule")]
-        [HttpGet("schedules/{handle}")]
-        public ActionResult<object> GetSchedule(string handle)
-        {
-            return new 
+            return Ok(r.Select(x => new
             {
-                timeZone = "Europe/Stockholm",
-                hostId = "someHost",
-                handle = "someHandle",
-                start = "2019/32",
-                end = "2019/52",
-                periods = new []
-                {
-                    new 
-                    {
-                        id = "someId",
-                        year = "2019",
-                        week = "33",
-                        day = "mon",
-                        oclock = "15:00",
-                        recur = 20
-                    }
-                }
-            };
-        }
-
-        // POST api/values
-        [Authorize("schedule")]
-        [HttpPost("schedules/{handle}/periods")]
-        public ActionResult AddPeriod(
-            string handle,
-            [FromBody] Period period)
-        {
-            return Created($"schedules/{handle}", "someId" );
-        }
-
-        [Authorize("schedule")]
-        [HttpDelete("schedules/{handle}/periods/{id}")]
-        public ActionResult RemovePeriod(string handle, string id)
-        {
-            return NoContent();
+                hostId = x.Id,
+                nostName = x.Name
+            }));
         }
 
         [AllowAnonymous]
-        [HttpGet("schedules/{handle}/meets")]
-        public ActionResult<object> GetMeets(string handle)
+        [HttpGet("hosts/{host}/times")]
+        public async Task<ActionResult<IEnumerable<object>>> GetMeets(
+            Guid host,
+            long from,
+            long to)
         {
-            return new []
+            var r = await _repo.GetMeets(host, from, to);
+
+            return Ok(r.Select(x => new 
             {
-                new
-                {
-                    start = DateTimeOffset.Now.ToUnixTimeSeconds(),
-                    dur = 30,
-                    id = "someMeetId"
-                }
-            };
+                hostId = x.Host,
+                meetName = x.Name,
+                start = x.Start,
+                dur = (int)(x.End - x.Start / (1000 * 60))
+            }));
+        }
+
+
+        [Authorize("call")]
+        [HttpPost("bookings")]
+        public async Task<ActionResult> Book(
+            BookRequest req)
+        {
+            var user = User.Claims
+                .First(x => x.Type == "sub")
+                .Value;
+
+            var r = await _repo.Book(
+                Guid.Parse(user),
+                req.HostId,
+                req.Start
+            );
+
+            return Created("bookings", new object());   
         }
 
         [Authorize("call")]
-        [HttpGet("schedules/{handle}/bookings")]
-        public ActionResult<object> ListBookings(
-            string handle)
+        [HttpGet("bookings")]
+        public async Task<ActionResult<IEnumerable<object>>> GetBookings()
         {
-            return new []
+            var user = User.Claims
+                .First(x => x.Type == "sub")
+                .Value;
+
+            var r = await _repo
+                .GetBookings(Guid.Parse(user));
+
+            return Ok(r.Select(x => new 
             {
-                "someMeetId"
-            };
+                hostId = x.Hostid,
+                meetName = x.HostHandle,
+                start = x.Start,
+                dur = (int)(x.End - x.Start / (1000 * 60))
+            }));           
         }
 
+        // POST api/values
         [Authorize("call")]
-        [HttpPost("schedules/{handle}/bookings")]
-        public ActionResult AddBooking(
-            string handle,
-            [FromBody] string meetId)
+        [HttpDelete("bookings")]
+        public async Task<ActionResult> UnBook(
+            BookRequest req)
         {
-            return Ok();
+            var user = User.Claims
+                .First(x => x.Type == "sub")
+                .Value;
+
+            var r = await _repo.UnBook(
+                Guid.Parse(user),
+                req.HostId,
+                req.Start
+            );
+
+            return NoContent();
         }
 
-        [Authorize("call")]
-        [HttpDelete("schedules/{handle}/bookings/{id}")]
-        public ActionResult DeleteBooking(
-            string handle,
-            string id)
-        {
-            return Ok();   
-        }
-
-        [Authorize("call")]
-        [HttpGet("schedules/{handle}/bookings/{meetId}")]
-        public ActionResult<object> GetBooking()
-        {
-            return new
-            {
-                id = "someMeetId",
-                hostName = "someHostName",
-                start = MockValues.SomeStartDate,
-                dur = 30
-            };
-        }
     }
 }

@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\http\http.csproj" />
+    <ProjectReference Include="..\postgres\postgres.csproj" />
   </ItemGroup>
 
 </Project>

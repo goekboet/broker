@@ -4,24 +4,60 @@ using System.Linq;
 
 namespace PublicCallers.Scheduling
 {
+    public class Host
+    {
+        public Host(
+            Guid id,
+            string name
+        )
+        {
+            Id = id;
+            Name = name;
+        }
+        public Guid Id { get; }
+        public string Name { get; }
+    }
+
     public class Meet
     {
         public Meet(
             long start,
             string name,
             string host,
-            int dur)
+            long end
+            )
         {
             Start = start;
             Name = name;
             Host = host;
-            Dur = dur;
+            End = end;
         }
 
         public long Start { get; }
         public string Name { get; }
         public string Host { get; }
-        public int Dur { get; }
+        public long End { get; }
+    }
+
+    public class Booking
+    {
+        public Booking(
+            Guid hId,
+            string hHandle,
+            long start,
+            long end
+        )
+        {
+            Hostid = hId;
+            HostHandle = hHandle;
+            Start = start;
+            End = end;
+        }
+        public Guid Hostid { get; }
+        public string HostHandle { get; }
+        public long Start { get; }
+        public long End { get; }
+
     }
 
     public enum Weekday : byte
@@ -43,7 +79,8 @@ namespace PublicCallers.Scheduling
             Weekday day,
             int h,
             int m,
-            int dur)
+            int dur
+            )
         {
             Year = year;
             Week = week;
@@ -78,7 +115,7 @@ namespace PublicCallers.Scheduling
             Record = record;
         }
 
-        public string Host {get;}
+        public string Host { get; }
         public long Start { get; }
         public long End { get; }
         public string Record { get; }
@@ -155,9 +192,9 @@ namespace PublicCallers.Scheduling
                 2032,2037,2043, 2048,2054,
                 2060,2065,2071, 2076,2082,
                 2088,2093,2099, 2105,2111,
-                2116,2122,2128, 2133,2139, 
-                2144,2150,2156, 2161,2167, 
-                2172,2178,2184, 2189,2195, 
+                2116,2122,2128, 2133,2139,
+                2144,2150,2156, 2161,2167,
+                2172,2178,2184, 2189,2195,
                 2201,2207,2212, 2218,2224,
                 2229,2235,2240, 2246,2252,
                 2257,2263,2268, 2274,2280,
@@ -179,7 +216,7 @@ namespace PublicCallers.Scheduling
             int weeks)
         {
             var lastWeek = WeeksInYear(s.Year);
-            var nextyear = (s.Week + weeks) > lastWeek 
+            var nextyear = (s.Week + weeks) > lastWeek
                 ? s.Year + 1
                 : s.Year;
 
@@ -237,7 +274,7 @@ namespace PublicCallers.Scheduling
             TimeZoneInfo tz)
         {
             var (y, m, d) = ToGregorian(s, tz);
-            var date = new DateTime(y,m,d, s.Hour, s.Minute, 0);
+            var date = new DateTime(y, m, d, s.Hour, s.Minute, 0);
 
             return new DateTimeOffset(
                 date,

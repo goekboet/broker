@@ -14,6 +14,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using postgres;
+using PublicCallers.Scheduling;
 
 namespace http
 {
@@ -53,16 +55,26 @@ namespace http
             services.AddAuthorization(options =>
             {
                 options.AddPolicy(
-                    "schedule", 
-                    policy => policy.Requirements.Add(new ScopeRequirement("schedule", "https://ids.ego")));
-                options.AddPolicy(
                     "call", 
                     policy => policy.Requirements.Add(new ScopeRequirement("call", "https://ids.ego")));
             });
 
             services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
+            services.AddSingleton<PgresUser>(PgresUserFromConfig(Configuration));
+            services.AddScoped<IMeetsRepository, PostGresRepo>();
+
+            // services.AddSingleton<PgresUser>
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
+
+        private PgresUser PgresUserFromConfig(IConfiguration c) =>
+            new PgresUser(
+                c["Pgres:Host"],
+                c["Pgres:Port"],
+                c["Pgres:Handle"],
+                c["Pgres:Pwd"],
+                c["Pgres:Db"]
+            );
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
