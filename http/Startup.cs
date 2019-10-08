@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using http.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -33,6 +35,8 @@ namespace http
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
@@ -55,8 +59,18 @@ namespace http
             services.AddAuthorization(options =>
             {
                 options.AddPolicy(
-                    "call", 
-                    policy => policy.Requirements.Add(new ScopeRequirement("call", "https://ids.ego")));
+                    "bookings", 
+                    policy => policy.Requirements.Add(new ScopeRequirement("bookings", "https://ids.ego")));
+            });
+
+            services.AddCors(opts =>
+            {
+                opts.AddPolicy("PublicData", b => 
+                {
+                    b.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .WithMethods(HttpMethod.Get.Method);
+                });
             });
 
             services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
@@ -86,6 +100,7 @@ namespace http
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors("PublicData");
             app.UseAuthentication();
             app.UseMvc();
         }

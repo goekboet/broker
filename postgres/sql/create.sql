@@ -18,6 +18,9 @@ CREATE TABLE times(
 );
 
 CREATE INDEX start_index ON times (start);
+ALTER TABLE times ADD CONSTRAINT one_booking_per_start UNIQUE (start, booked);
 
 create user broker with password 'trtLAqkGY3nE3DyA';
 GRANT CONNECT ON DATABASE meets to broker;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO broker; 

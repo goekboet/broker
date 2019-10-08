@@ -23,7 +23,7 @@ namespace PublicCallers.Scheduling
         public Meet(
             long start,
             string name,
-            string host,
+            Guid host,
             long end
             )
         {
@@ -35,7 +35,7 @@ namespace PublicCallers.Scheduling
 
         public long Start { get; }
         public string Name { get; }
-        public string Host { get; }
+        public Guid Host { get; }
         public long End { get; }
     }
 
@@ -302,15 +302,6 @@ namespace PublicCallers.Scheduling
                 record
             );
         }
-
-        public static Meet ToMeet(
-            this TimeData d,
-            string host) => new Meet(
-                d.Start,
-                d.Record,
-                host,
-                (int)(d.End - d.Start)
-            );
 
         public static IEnumerable<TimeRecord> RepeatWeekly(
             TimeRecord r,
