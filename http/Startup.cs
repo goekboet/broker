@@ -23,14 +23,12 @@ namespace http
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration, ILogger<Startup> logger)
+        public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            Logger = logger;
         }
 
         public IConfiguration Configuration { get; }
-        public ILogger<Startup> Logger { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -75,10 +73,9 @@ namespace http
 
             services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
             services.AddSingleton<PgresUser>(PgresUserFromConfig(Configuration));
-            services.AddScoped<IMeetsRepository, PostGresRepo>();
+            services.AddScoped<IHostsRepository, PostGresRepo>();
 
-            // services.AddSingleton<PgresUser>
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllers();
         }
 
         private PgresUser PgresUserFromConfig(IConfiguration c) =>
@@ -91,18 +88,24 @@ namespace http
             );
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(
+            IApplicationBuilder app, 
+            IWebHostEnvironment env)
         {
             app.UseForwardedHeaders();
 
-            if (env.IsDevelopment())
+            if (env.EnvironmentName == "Development")
             {
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseRouting();
             app.UseCors("PublicData");
             app.UseAuthentication();
-            app.UseMvc();
+            app.UseAuthorization();
+            app.UseEndpoints(builder => {
+                builder.MapControllers();
+            });
         }
     }
 }

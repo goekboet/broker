@@ -7,7 +7,7 @@ using PublicCallers.Scheduling;
 
 namespace postgres
 {
-    public class PostGresRepo : IMeetsRepository
+    public class PostGresRepo : IHostsRepository
     {
         private PgresUser _u;
 

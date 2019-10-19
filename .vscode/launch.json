@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/http/bin/Debug/netcoreapp2.2/http.dll",
+            "program": "${workspaceFolder}/http/bin/Debug/netcoreapp3.0/http",
             "args": [],
             "cwd": "${workspaceFolder}/http",
             "stopAtEntry": false,

@@ -136,7 +136,7 @@ namespace test.http
             var r = await apiclient.PostAsJsonAsync("bookings", 
                 new 
                 {
-                    HostId = "4c640f8c-90b6-4c9e-ade9-ed4652550338",
+                    HostId = "b40eb02e-8783-454b-9784-fd56ecdf5bc6",
                     Start = 1568998800000
                 });
 

@@ -24,7 +24,7 @@ namespace PublicCallers.Scheduling
         public Exception Exception { get; }
     }
 
-    public interface IMeetsRepository
+    public interface IHostsRepository
     {
         // GET    hosts/{id}/times?from={from}&to={to}
         Task<IEnumerable<Meet>> GetMeets(
