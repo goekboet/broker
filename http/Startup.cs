@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Net.Http;
-using System.Threading.Tasks;
+using System.Security.Cryptography.X509Certificates;
 using http.Authorization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using postgres;
 using PublicCallers.Scheduling;
 
@@ -60,6 +54,20 @@ namespace http
                     "bookings", 
                     policy => policy.Requirements.Add(new ScopeRequirement("bookings", "https://ids.ego")));
             });
+
+            if (Configuration["Dataprotection:Type"] == "Docker")
+            {
+                services.AddDataProtection()
+                    .PersistKeysToFileSystem(
+                        new DirectoryInfo(Configuration["Dataprotection:KeyPath"])
+                    )
+                    .ProtectKeysWithCertificate(
+                        new X509Certificate2(
+                            Configuration["Dataprotection:CertPath"],
+                            Configuration["Dataprotection:CertPass"]
+                        )
+                    );
+            }
 
             services.AddCors(opts =>
             {
