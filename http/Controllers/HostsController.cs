@@ -31,35 +31,34 @@ namespace http.Controllers
         [HttpGet("hosts")]  
         public async Task<ActionResult<IEnumerable<object>>> GetHosts()
         {
-            var sw = Stopwatch.StartNew();
             var r = await _repo.GetHosts();
-            _log.LogInformation("GetHosts took {ElapsedMs} ms", sw.ElapsedMilliseconds);
 
-            return Ok(r.Select(x => new
+            return Ok(r.Select(x => new HostJson
             {
-                hostId = x.Id,
-                hostName = x.Name
+                Id = x.Id.ToString(),
+                Name = x.Name,
+                TimeZone = x.Timezone
             }));
         }
 
         [EnableCors("PublicData")]
         [AllowAnonymous]
         [HttpGet("hosts/{host}/times")]
-        public async Task<ActionResult<IEnumerable<object>>> GetMeets(
+        public async Task<ActionResult<IEnumerable<TimeJson>>> GetTimes(
             Guid host,
             long from,
             long to)
         {
             var sw = Stopwatch.StartNew();
-            var r = await _repo.GetMeets(host, from, to);
+            var r = await _repo.GetTimes(host, from, to);
             _log.LogInformation("GetMeets took {ElapsedMs} ms", sw.ElapsedMilliseconds);
 
-            return Ok(r.Select(x => new 
+            return Ok(r.Select(x => new TimeJson
             {
-                hostId = x.Host,
-                meetName = x.Name,
-                start = x.Start,
-                dur = (int)((x.End - x.Start) / (1000 * 60))
+                HostId = x.Host.ToString(),
+                Name = x.Name,
+                Start = x.Start,
+                Dur = (int)((x.End - x.Start) / (1000 * 60))
             }));
         }
     }

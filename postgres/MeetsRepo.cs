@@ -34,7 +34,7 @@ namespace postgres
             }
         }
 
-        public Task<IEnumerable<Booking>> GetBookings(Guid guest) => _u
+        public Task<IEnumerable<Time>> GetBookedTimes(Guid guest) => _u
             .ToConnection()
             .GetBookings(guest)
             .SubmitQuery(ListBookingsExtensions.ToBooking);
@@ -44,7 +44,7 @@ namespace postgres
             .ListHosts()
             .SubmitQuery(ListHostExtensions.ToHost);
 
-        public Task<IEnumerable<Meet>> GetMeets(
+        public Task<IEnumerable<Time>> GetTimes(
             Guid host, 
             long start, 
             long end) => _u
@@ -72,7 +72,7 @@ namespace postgres
                 $"order by t.start"
             });
 
-        public static Meet ToMeet(IDataRecord r) => new Meet(
+        public static Time ToMeet(IDataRecord r) => new Time(
             r.GetInt64(r.GetOrdinal("start")),
             r.GetString(r.GetOrdinal("record")),
             r.GetGuid(r.GetOrdinal("host")),
@@ -102,7 +102,7 @@ namespace postgres
     {
         private static string Sql { get; } = string.Join("\n", new[]
             {
-                "select id, handle as name from hosts",
+                "select id, handle as name, tz from hosts",
                 "order by handle",
                 "limit 100"
             });
@@ -111,7 +111,8 @@ namespace postgres
             this NpgsqlConnection c) => new NpgsqlCommand(Sql, c);
         public static Host ToHost(IDataRecord r) => new Host(
             r.GetGuid(r.GetOrdinal("id")),
-            r.GetString(r.GetOrdinal("name"))
+            r.GetString(r.GetOrdinal("name")),
+            r.GetString(r.GetOrdinal("tz"))
             );
     }
 
@@ -153,14 +154,13 @@ namespace postgres
     public static class ListBookingsExtensions
     {
         const string guest = "guest";
-        private static string Sql { get; } = string.Join("\n", new[]
-            {
-                $"select h.id as hostId, h.handle as host, t.start, t.end from times t",
-                $"join hosts h on t.host = h.Id",
+
+        private static string Sql {get;} = string.Join("\n", new []
+        {
+            $"select t.host, t.start, t.end, t.record from times t",
                 $"where t.booked = @{guest}",
-                $"order by t.start",
-                $"limit 100;"
-            });
+                $"order by t.start"
+        });
 
         public static NpgsqlCommand GetBookings(
             this NpgsqlConnection c,
@@ -177,10 +177,10 @@ namespace postgres
             return cmd;
         }
 
-        public static Booking ToBooking(IDataRecord r) => new Booking(
-            r.GetGuid(r.GetOrdinal("hostId")),
-            r.GetString(r.GetOrdinal("host")),
+        public static Time ToBooking(IDataRecord r) => new Time(
             r.GetInt64(r.GetOrdinal("start")),
+            r.GetString(r.GetOrdinal("record")),
+            r.GetGuid(r.GetOrdinal("host")),
             r.GetInt64(r.GetOrdinal("end"))
         );
     }

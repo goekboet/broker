@@ -27,7 +27,7 @@ namespace PublicCallers.Scheduling
     public interface IHostsRepository
     {
         // GET    hosts/{id}/times?from={from}&to={to}
-        Task<IEnumerable<Meet>> GetMeets(
+        Task<IEnumerable<Time>> GetTimes(
             Guid host,
             long start,
             long end
@@ -35,7 +35,7 @@ namespace PublicCallers.Scheduling
         Task<IEnumerable<Host>> GetHosts();
 
         // GET    bookings
-        Task<IEnumerable<Booking>> GetBookings(
+        Task<IEnumerable<Time>> GetBookedTimes(
             Guid guest
         );
 

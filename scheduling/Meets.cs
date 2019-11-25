@@ -8,19 +8,22 @@ namespace PublicCallers.Scheduling
     {
         public Host(
             Guid id,
-            string name
+            string name,
+            string tz
         )
         {
             Id = id;
             Name = name;
+            Timezone = tz;
         }
         public Guid Id { get; }
         public string Name { get; }
+        public string Timezone {get;}
     }
 
-    public class Meet
+    public class Time
     {
-        public Meet(
+        public Time(
             long start,
             string name,
             Guid host,
@@ -37,27 +40,6 @@ namespace PublicCallers.Scheduling
         public string Name { get; }
         public Guid Host { get; }
         public long End { get; }
-    }
-
-    public class Booking
-    {
-        public Booking(
-            Guid hId,
-            string hHandle,
-            long start,
-            long end
-        )
-        {
-            Hostid = hId;
-            HostHandle = hHandle;
-            Start = start;
-            End = end;
-        }
-        public Guid Hostid { get; }
-        public string HostHandle { get; }
-        public long Start { get; }
-        public long End { get; }
-
     }
 
     public enum Weekday : byte
@@ -326,12 +308,12 @@ namespace PublicCallers.Scheduling
             .SelectMany(x => DailySchedule(year, week, x.Key, x.Value))
             .SelectMany(x => RepeatWeekly(x, r));
 
-        public static IEnumerable<Meet> GetMeets(
+        public static IEnumerable<Time> GetMeets(
             this TimeRecord s,
             long from,
             long to)
         {
-            return new Meet[0];
+            return new Time[0];
         }
     }
 }
