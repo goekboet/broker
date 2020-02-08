@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0 AS build-env
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-env
 WORKDIR /app
 
 # Copy csproj and restore as distinct layers
@@ -15,7 +15,7 @@ COPY ./postgres ./postgres
 RUN dotnet publish -c Release -o out ./http/http.csproj
 
 # Build runtime image
-FROM ego/aspnet:3.0
+FROM ego/aspnet:3.1
 WORKDIR /app
 COPY --from=build-env /app/out .
 ENTRYPOINT ["dotnet", "http.dll"]
