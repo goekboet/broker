@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PublicCallers.Scheduling;
 using static PublicCallers.Scheduling.Weekday;
-using FirstLastOccurenceLookup = System.Collections.Generic.Dictionary<string,Tests.Schedulings.FirstLastOccurenceCase>;
+using FirstLastOccurenceLookup = System.Collections.Generic.Dictionary<string,unittests.FirstLastOccurenceCase>;
 
-namespace Tests.Schedulings
+namespace unittests
 {
 
     public class FirstLastOccurenceCase

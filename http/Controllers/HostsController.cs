@@ -20,7 +20,7 @@ namespace http.Controllers
         public HostsController(
             IHostsRepository repo,
             ILogger<HostsController> log
-        ) 
+        )
         {
             _repo = repo;
             _log = log;
@@ -28,7 +28,7 @@ namespace http.Controllers
         // GET a
         [EnableCors("PublicData")]
         [AllowAnonymous]
-        [HttpGet("hosts")]  
+        [HttpGet("hosts")]
         public async Task<ActionResult<IEnumerable<object>>> GetHosts()
         {
             var r = await _repo.GetHosts();
@@ -37,21 +37,83 @@ namespace http.Controllers
             {
                 Id = x.Id.ToString(),
                 Name = x.Name,
-                TimeZone = x.Timezone
+                TimeZone = "n/a"
             }));
+        }
+
+        [HttpPost("publishers")]
+        [Authorize("publish")]
+        public async Task<ActionResult> AddHost(
+            PublisherJson p)
+        {
+            var sub = User.Claims.First(x => x.Type == "sub").Value;
+            await _repo.AddHost(new Host(Guid.Parse(sub), p.Name));
+
+            return Created($"publishers/{p.Name}", p);
+        }
+
+        [HttpGet("publishers")]
+        [Authorize("publish")]
+        public async Task<ActionResult> ListPublishers()
+        {
+            var sub = User.Claims.First(x => x.Type == "sub").Value;
+            var r = (await _repo.GetHost(Guid.Parse(sub)));
+
+            return Ok(r);
+        }
+
+        [HttpGet("publishers/{name}")]
+        [Authorize("publish")]
+        public async Task<ActionResult> GetHost(string name)
+        {
+            var sub = User.Claims.First(x => x.Type == "sub").Value;
+            var r = (await _repo.GetHost(Guid.Parse(sub)));
+
+            var p = r.SingleOrDefault();
+            return p == null
+                ? NotFound()
+                : Ok(p) as ActionResult;
+        }
+
+        [HttpPost("publishers/{name}/times")]
+        [Authorize("publish")]
+        public async Task<ActionResult> PublishTime(
+            PublishTimeJson payload)
+        {
+            var sub = User.Claims.First(x => x.Type == "sub").Value;
+            await _repo.AddTime(new Time(
+                payload.Start, 
+                payload.Name, 
+                Guid.Parse(sub),
+                payload.End));
+
+            return Created($"hosts/{sub}/times?from={payload.Start}&to={payload.End}", payload);
+        }
+
+        [HttpGet("publishers/{name}/times")]
+        [Authorize("publish")]
+        public async Task<ActionResult> ListPublishedTimes()
+        {
+            return await Task.FromResult(NotFound() as ActionResult);
+        }
+
+        [HttpGet("publishers/{name}/times/{start}")]
+        [Authorize("publish")]
+        public async Task<ActionResult> GetPublishedTime()
+        {
+            return await Task.FromResult(NotFound() as ActionResult);
         }
 
         [EnableCors("PublicData")]
         [AllowAnonymous]
         [HttpGet("hosts/{host}/times")]
-        public async Task<ActionResult<IEnumerable<TimeJson>>> GetTimes(
+        public async Task<ActionResult<IEnumerable<TimeJson>>> ListTimes(
             Guid host,
             long from,
             long to)
         {
             var sw = Stopwatch.StartNew();
             var r = await _repo.GetTimes(host, from, to);
-            _log.LogInformation("GetMeets took {ElapsedMs} ms", sw.ElapsedMilliseconds);
 
             return Ok(r.Select(x => new TimeJson
             {

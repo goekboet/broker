@@ -32,8 +32,15 @@ namespace PublicCallers.Scheduling
             long start,
             long end
         );
+
+        Task AddTime(Time t);
+
+        // GET hosts
         Task<IEnumerable<Host>> GetHosts();
 
+        Task AddHost(Host h);
+
+        Task<IEnumerable<Host>> GetHost(Guid sub);
         // GET    bookings
         Task<IEnumerable<Time>> GetBookedTimes(
             Guid guest

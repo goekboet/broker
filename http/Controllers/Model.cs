@@ -7,13 +7,13 @@ namespace http.Controllers
     {
         [JsonPropertyName("hostId")]
         public string HostId { get; set; }
-        
+
         [JsonPropertyName("name")]
         public string Name { get; set; }
-        
+
         [JsonPropertyName("start")]
         public long Start { get; set; }
-        
+
         [JsonPropertyName("dur")]
         public int Dur { get; set; }
 
@@ -25,11 +25,29 @@ namespace http.Controllers
     {
         [JsonPropertyName("id")]
         public string Id { get; set; }
-        
+
         [JsonPropertyName("name")]
         public string Name { get; set; }
 
         [JsonPropertyName("tz")]
         public string TimeZone { get; set; }
+    }
+
+    public class PublisherJson
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+    }
+
+    public class PublishTimeJson
+    {
+        [JsonPropertyName("start")]
+        public long Start {get;set;}
+        
+        [JsonPropertyName("name")]
+        public string Name {get;set;}
+        
+        [JsonPropertyName("end")]
+        public long End {get;set;}
     }
 }

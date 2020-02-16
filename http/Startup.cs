@@ -50,9 +50,14 @@ namespace http
             
             services.AddAuthorization(options =>
             {
+                var issuer = Configuration["Bearer:Authority"];
                 options.AddPolicy(
                     "bookings", 
-                    policy => policy.Requirements.Add(new ScopeRequirement("bookings", "https://ids.ego")));
+                    p => p.Requirements.Add(new ScopeRequirement("bookings", issuer)));
+                options.AddPolicy(
+                    "publish",
+                    p => p.Requirements.Add(new ScopeRequirement("publish", issuer))
+                );
             });
 
             if (Configuration["Dataprotection:Type"] == "Docker")

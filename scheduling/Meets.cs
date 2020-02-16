@@ -8,17 +8,15 @@ namespace PublicCallers.Scheduling
     {
         public Host(
             Guid id,
-            string name,
-            string tz
+            string name
         )
         {
             Id = id;
             Name = name;
-            Timezone = tz;
         }
+        
         public Guid Id { get; }
         public string Name { get; }
-        public string Timezone {get;}
     }
 
     public class Time

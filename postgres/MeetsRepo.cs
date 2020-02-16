@@ -17,6 +17,16 @@ namespace postgres
             _u = u;
         }
 
+        public Task AddHost(Host h) => _u
+                .ToConnection()
+                .AddPublisher(h.Id, h.Name)
+                .SubmitCommand();
+
+        public Task AddTime(Time t) => _u
+            .ToConnection()
+            .AddTime(t)
+            .SubmitCommand();
+
         public async Task<Result<int>> Book(Guid g, Guid h, long s)
         {
             try 
@@ -38,6 +48,11 @@ namespace postgres
             .ToConnection()
             .GetBookings(guest)
             .SubmitQuery(ListBookingsExtensions.ToBooking);
+
+        public Task<IEnumerable<Host>> GetHost(Guid sub) => _u
+            .ToConnection()
+            .GetPublisher(sub)
+            .SubmitQuery(GetPublisherExtensions.ToHost);
 
         public Task<IEnumerable<Host>> GetHosts() => _u
             .ToConnection()
@@ -98,11 +113,39 @@ namespace postgres
         }
     }
 
+    public static class AddTimeExtensions
+    {
+        private static string Sql { get; } = string.Join("\n", new[]
+            {
+                "insert into times (host, start, \"end\", record, booked)",
+                "values(@host, @start, @end, @record, null)",
+                "on conflict (host, start) do nothing"
+            });
+
+        public static NpgsqlCommand AddTime(
+            this NpgsqlConnection c,
+            Time t
+        )
+        {
+            var cmd = new NpgsqlCommand(Sql, c);
+            cmd.Parameters.AddMany(
+                new (string n, object v)[]
+                {
+                    ("host", t.Host),
+                    ("start", t.Start),
+                    ("end", t.End),
+                    ("record", t.Name)
+                });
+
+            return cmd;
+        }
+    }
+
     public static class ListHostExtensions
     {
         private static string Sql { get; } = string.Join("\n", new[]
             {
-                "select id, handle as name, tz from hosts",
+                "select sub, handle as name from hosts",
                 "order by handle",
                 "limit 100"
             });
@@ -110,10 +153,66 @@ namespace postgres
         public static NpgsqlCommand ListHosts(
             this NpgsqlConnection c) => new NpgsqlCommand(Sql, c);
         public static Host ToHost(IDataRecord r) => new Host(
-            r.GetGuid(r.GetOrdinal("id")),
-            r.GetString(r.GetOrdinal("name")),
-            r.GetString(r.GetOrdinal("tz"))
+            r.GetGuid(r.GetOrdinal("sub")),
+            r.GetString(r.GetOrdinal("name"))
             );
+    }
+
+    public static class AddPublisherExtensions
+    {
+        private static string Sql { get; } = string.Join("\n", new[]
+            {
+                "insert into hosts (sub, handle)",
+                "values(@sub, @handle)",
+                "on conflict (sub) do nothing"
+            });
+
+        public static NpgsqlCommand AddPublisher(
+            this NpgsqlConnection c,
+            Guid sub,
+            string name
+        )
+        {
+            var cmd = new NpgsqlCommand(Sql, c);
+            cmd.Parameters.AddMany(
+                new (string n, object v)[]
+                {
+                    ("sub", sub),
+                    ("handle", name),
+                });
+
+            return cmd;
+        }
+    }
+
+    public static class GetPublisherExtensions
+    {
+        private static string Sql { get; } = string.Join("\n", new[]
+            {
+                "select sub, handle from hosts",
+                "where sub = @sub"
+            });
+
+        public static NpgsqlCommand GetPublisher(
+            this NpgsqlConnection c,
+            Guid sub
+        )
+        {
+            var cmd = new NpgsqlCommand(Sql, c);
+            cmd.Parameters.AddMany(
+                new (string n, object v)[]
+                {
+                    ("sub", sub),
+                });
+
+            return cmd;
+        }
+
+        public static Host ToHost(IDataRecord r) => 
+            new Host(
+                id: r.GetGuid(r.GetOrdinal("sub")),
+                name: r.GetString(r.GetOrdinal("handle"))
+                );
     }
 
     public static class BookExtensions
@@ -158,8 +257,8 @@ namespace postgres
         private static string Sql {get;} = string.Join("\n", new []
         {
             $"select t.host, t.start, t.end, t.record from times t",
-                $"where t.booked = @{guest}",
-                $"order by t.start"
+            $"where t.booked = @{guest}",
+            $"order by t.start"
         });
 
         public static NpgsqlCommand GetBookings(
