@@ -1,78 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Threading.Tasks;
 using Npgsql;
 using PublicCallers.Scheduling;
+using scheduling;
 
 namespace postgres
 {
-    public class PostGresRepo : IHostsRepository
-    {
-        private PgresUser _u;
-
-        public PostGresRepo(
-            PgresUser u)
-        {
-            _u = u;
-        }
-
-        public Task AddHost(Host h) => _u
-                .ToConnection()
-                .AddPublisher(h.Id, h.Name)
-                .SubmitCommand();
-
-        public Task AddTime(Time t) => _u
-            .ToConnection()
-            .AddTime(t)
-            .SubmitCommand();
-
-        public async Task<Result<int>> Book(Guid g, Guid h, long s)
-        {
-            try 
-            {
-                var r = await _u
-                    .ToConnection()
-                    .Book(g, h, s)
-                    .SubmitCommand();
-
-                return new OK<int>(r);
-            }
-            catch (PostgresException e) when (e.ConstraintName == "one_booking_per_start")
-            {
-                return new Err<int>(e);
-            }
-        }
-
-        public Task<IEnumerable<Time>> GetBookedTimes(Guid guest) => _u
-            .ToConnection()
-            .GetBookings(guest)
-            .SubmitQuery(ListBookingsExtensions.ToBooking);
-
-        public Task<IEnumerable<Host>> GetHost(Guid sub) => _u
-            .ToConnection()
-            .GetPublisher(sub)
-            .SubmitQuery(GetPublisherExtensions.ToHost);
-
-        public Task<IEnumerable<Host>> GetHosts() => _u
-            .ToConnection()
-            .ListHosts()
-            .SubmitQuery(ListHostExtensions.ToHost);
-
-        public Task<IEnumerable<Time>> GetTimes(
-            Guid host, 
-            long start, 
-            long end) => _u
-            .ToConnection()
-            .ListTimes(host, start, end)
-            .SubmitQuery(ListTimesExtensions.ToMeet);
-
-        public Task<int> UnBook(Guid g, long s) => _u
-            .ToConnection()
-            .UnBook(g, s)
-            .SubmitCommand();
-    }
-
     public static class ListTimesExtensions
     {
         private const string p_host = "host";
@@ -124,17 +57,18 @@ namespace postgres
 
         public static NpgsqlCommand AddTime(
             this NpgsqlConnection c,
-            Time t
+            Guid sub,
+            PublishedTime t
         )
         {
             var cmd = new NpgsqlCommand(Sql, c);
             cmd.Parameters.AddMany(
                 new (string n, object v)[]
                 {
-                    ("host", t.Host),
+                    ("host", sub),
                     ("start", t.Start),
                     ("end", t.End),
-                    ("record", t.Name)
+                    ("record", t.Record)
                 });
 
             return cmd;
@@ -158,62 +92,9 @@ namespace postgres
             );
     }
 
-    public static class AddPublisherExtensions
-    {
-        private static string Sql { get; } = string.Join("\n", new[]
-            {
-                "insert into hosts (sub, handle)",
-                "values(@sub, @handle)",
-                "on conflict (sub) do nothing"
-            });
+    
 
-        public static NpgsqlCommand AddPublisher(
-            this NpgsqlConnection c,
-            Guid sub,
-            string name
-        )
-        {
-            var cmd = new NpgsqlCommand(Sql, c);
-            cmd.Parameters.AddMany(
-                new (string n, object v)[]
-                {
-                    ("sub", sub),
-                    ("handle", name),
-                });
-
-            return cmd;
-        }
-    }
-
-    public static class GetPublisherExtensions
-    {
-        private static string Sql { get; } = string.Join("\n", new[]
-            {
-                "select sub, handle from hosts",
-                "where sub = @sub"
-            });
-
-        public static NpgsqlCommand GetPublisher(
-            this NpgsqlConnection c,
-            Guid sub
-        )
-        {
-            var cmd = new NpgsqlCommand(Sql, c);
-            cmd.Parameters.AddMany(
-                new (string n, object v)[]
-                {
-                    ("sub", sub),
-                });
-
-            return cmd;
-        }
-
-        public static Host ToHost(IDataRecord r) => 
-            new Host(
-                id: r.GetGuid(r.GetOrdinal("sub")),
-                name: r.GetString(r.GetOrdinal("handle"))
-                );
-    }
+    
 
     public static class BookExtensions
     {

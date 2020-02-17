@@ -102,6 +102,8 @@ namespace PublicCallers.Scheduling
         public bool Booked => false;
     }
 
+    
+
 
     public static class SchedulingExtensions
     {

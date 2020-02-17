@@ -49,5 +49,8 @@ namespace http.Controllers
         
         [JsonPropertyName("end")]
         public long End {get;set;}
+
+        [JsonPropertyName("booked")]
+        public bool Booked {get;set;}
     }
 }

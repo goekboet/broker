@@ -24,24 +24,9 @@ namespace PublicCallers.Scheduling
         public Exception Exception { get; }
     }
 
-    public interface IHostsRepository
+    public interface IBookingsRepository
     {
-        // GET    hosts/{id}/times?from={from}&to={to}
-        Task<IEnumerable<Time>> GetTimes(
-            Guid host,
-            long start,
-            long end
-        );
-
-        Task AddTime(Time t);
-
-        // GET hosts
-        Task<IEnumerable<Host>> GetHosts();
-
-        Task AddHost(Host h);
-
-        Task<IEnumerable<Host>> GetHost(Guid sub);
-        // GET    bookings
+         // GET    bookings
         Task<IEnumerable<Time>> GetBookedTimes(
             Guid guest
         );
@@ -59,4 +44,18 @@ namespace PublicCallers.Scheduling
             long s
         );
     }
+
+    public interface IPublicMeetsRepository
+    {
+        // GET hosts
+        Task<IEnumerable<Host>> GetHosts();
+
+        Task<IEnumerable<Time>> GetTimes(
+            Guid host,
+            long start,
+            long end
+        );
+    }
+
+    
 }

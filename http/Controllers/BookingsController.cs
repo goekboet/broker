@@ -13,11 +13,11 @@ namespace http.Controllers
     [ApiController]
     public class BookingsController : ControllerBase
     {
-        IHostsRepository _repo;
+        IBookingsRepository _repo;
         ILogger<BookingsController> _log;
 
         public BookingsController(
-            IHostsRepository repo,
+            IBookingsRepository repo,
             ILogger<BookingsController> log
         ) 
         {

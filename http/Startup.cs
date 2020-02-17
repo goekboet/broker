@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using postgres;
 using PublicCallers.Scheduling;
+using scheduling;
 
 namespace http
 {
@@ -86,7 +87,9 @@ namespace http
 
             services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
             services.AddSingleton<PgresUser>(PgresUserFromConfig(Configuration));
-            services.AddScoped<IHostsRepository, PostGresRepo>();
+            services.AddScoped<IPublisherRepository, PublisherRepo>();
+            services.AddScoped<IBookingsRepository, BookingsRepo>();
+            services.AddScoped<IPublicMeetsRepository, PublicMeetRepo>();
 
             services.AddControllers();
         }
