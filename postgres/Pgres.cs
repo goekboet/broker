@@ -9,6 +9,7 @@ namespace postgres
 {
     public class PgresUser
     {
+        public PgresUser() {}
         public PgresUser(
             string host,
             string port,
