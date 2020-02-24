@@ -6,17 +6,9 @@ using Microsoft.Extensions.Configuration;
 
 public static class WebApp
 {
-    private static IEnumerable<KeyValuePair<string, string>> TestConf = new
-        Dictionary<string, string>()
-    {
-        ["Pgres:Host"] = "localhost",
-        ["Pgres:Port"] = "5432",
-        ["Pgres:Handle"] = "broker",
-        ["Pgres:Pwd"] = "trtLAqkGY3nE3DyA",
-        ["Pgres:Db"] = "meets"
-    };
-
-    public static WebApplicationFactory<http.Startup> Get()
+    public static WebApplicationFactory<http.Startup> Get(
+        Dictionary<string, string> DbConnection
+    )
     {
         return new WebApplicationFactory<http.Startup>()
             .WithWebHostBuilder(opts =>
@@ -31,7 +23,7 @@ public static class WebApp
 
                 opts.ConfigureAppConfiguration((ctx, cnf) =>
                 {
-                    cnf.AddInMemoryCollection(TestConf);
+                    cnf.AddInMemoryCollection(DbConnection);
                 });
             });
     }

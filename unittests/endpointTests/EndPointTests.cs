@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -9,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using postgres;
+using postgres.test;
 
 namespace endpointTests
 {
@@ -22,7 +26,21 @@ namespace endpointTests
     [TestClass]
     public class EndpointTests
     {
+        public static Dictionary<string, string> ToConfig(PgresUser u) => new
+       Dictionary<string, string>()
+        {
+            ["Pgres:Host"] = u.Host,
+            ["Pgres:Handle"] = u.Handle,
+            ["Pgres:Pwd"] = u.Pwd,
+            ["Pgres:Db"] = u.Db
+        };
+
+        public static string Random =>
+            new string(Guid.NewGuid().ToString().Where(x => x != '-').Take(8).ToArray());
+
         private static WebApplicationFactory<http.Startup> _factory;
+        private static PgresUser _dbCreds = null;
+        private static string _testDbName = null;
         private static ServiceProvider Services()
         {
             var collection = new ServiceCollection();
@@ -40,11 +58,30 @@ namespace endpointTests
         }
 
         [AssemblyInitialize]
-        public static Task AssemblyInit(TestContext context)
+        public static async Task AssemblyInit(TestContext context)
         {
-            _factory = WebApp.Get();
+            var jsonconfig = File.ReadAllText("config.json");
+            var schema = File.ReadAllText("tablesUp.sql");
+            var creds = JsonSerializer.Deserialize<PgresUser>(jsonconfig);
+            var dbname = $"test_broker_{Random}";
+            var newDb = creds.ToConnection(false).NewTestDatabase(dbname);
+            var newDbR = await newDb.SubmitCommand();
+            creds.Db = dbname;
+            var tablesUp = creds.ToConnection(false).RunSql(schema);
+            var tablesUpR = await tablesUp.SubmitCommand();
 
-            return Task.CompletedTask;
+            _factory = WebApp.Get(ToConfig(creds));
+            _dbCreds = creds;
+            _testDbName = dbname;
+            
+        }
+
+        [AssemblyCleanup]
+        public static async Task AssemblyCleanup()
+        {
+            _dbCreds.Db = "broker_test";
+            var dropDb = _dbCreds.ToConnection(false).DropDatabase(_testDbName);
+            var dropDbR = await dropDb.SubmitCommand();
         }
 
         static Task<Access> RandomAccess(
@@ -60,16 +97,16 @@ namespace endpointTests
         public async Task PostThenGetPublisher()
         {
             var access = await RandomAccess(
-                DateTimeOffset.Now.ToUnixTimeMilliseconds(), 
+                DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Services());
 
             var c = _factory.CreateClient();
             c.SetBearerToken(access.Accesstoken);
             var p = JsonSerializer.Serialize(
                 new { name = Guid.NewGuid().ToString() });
-            
+
             var post = await c.PostAsync(
-                $"publishers", 
+                $"publishers",
                 new StringContent(p, Encoding.UTF8, "application/json"));
             Assert.IsTrue(post.IsSuccessStatusCode);
 
@@ -84,7 +121,7 @@ namespace endpointTests
         public async Task PostPublisherTwoTimes()
         {
             var access = await RandomAccess(
-                DateTimeOffset.Now.ToUnixTimeMilliseconds(), 
+                DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Services());
 
             var p1 = JsonSerializer.Serialize(
@@ -95,14 +132,14 @@ namespace endpointTests
             var c = _factory.CreateClient();
             c.SetBearerToken(access.Accesstoken);
             var r1 = await c.PostAsync(
-                $"publishers", 
+                $"publishers",
                 new StringContent(p1, Encoding.UTF8, "application/json"));
             var r2 = await c.PostAsync(
-                $"publishers", 
+                $"publishers",
                 new StringContent(p2, Encoding.UTF8, "application/json"));
 
             Assert.IsTrue(
-                new [] {r1, r2}.Select(x => x.IsSuccessStatusCode).All(x => x));
+                new[] { r1, r2 }.Select(x => x.IsSuccessStatusCode).All(x => x));
 
         }
 
@@ -110,18 +147,19 @@ namespace endpointTests
         public async Task PostPublisherTime()
         {
             var access = await RandomAccess(
-                DateTimeOffset.Now.ToUnixTimeMilliseconds(), 
+                DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Services());
             var c = _factory.CreateClient();
             c.SetBearerToken(access.Accesstoken);
-             
+
             var now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             var dur = (long)TimeSpan.FromMinutes(30).TotalMilliseconds;
-            var time = new {
-                    start = now,
-                    name = "test",
-                    end = now + dur 
-                };
+            var time = new
+            {
+                start = now,
+                name = "test",
+                end = now + dur
+            };
 
             var name = Guid.NewGuid().ToString();
             var host = await c.PostAsJsonAsync(

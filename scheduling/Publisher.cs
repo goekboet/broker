@@ -18,7 +18,7 @@ namespace scheduling
             Record = record;
             Booked = booked;
         }
-        
+
         public long Start { get; }
         public long End { get; }
         public string Record { get; }
@@ -29,10 +29,10 @@ namespace scheduling
     {
         public Publisher(string name)
         {
-            name = Name;
+            Name = name;
         }
 
-        public string Name {get;}
+        public string Name { get; }
     }
 
     public interface IPublisherRepository

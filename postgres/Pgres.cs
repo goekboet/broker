@@ -93,9 +93,11 @@ namespace postgres
             return a;
         }
 
+        static string PoolingKVP => ";Pooling=false";
         public static NpgsqlConnection ToConnection(
-            this PgresUser u) =>
-            new NpgsqlConnection(u.ToString());
+            this PgresUser u,
+            bool pooling = true) =>
+            new NpgsqlConnection($"{u.ToString()}{(pooling ? string.Empty : PoolingKVP)}");
 
         public static NpgsqlParameterCollection AddMany(
             this NpgsqlParameterCollection c,
