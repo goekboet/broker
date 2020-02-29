@@ -49,9 +49,8 @@ namespace cli
 
             var now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             var access = await Token.GetAccess(sp, now, usr);
-            var json = JsonSerializer.Serialize(access);
 
-            Console.WriteLine(json);
+            Console.WriteLine(access.Accesstoken);
             return 0;
         }
     }

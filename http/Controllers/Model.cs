@@ -53,4 +53,19 @@ namespace http.Controllers
         [JsonPropertyName("booked")]
         public bool Booked {get;set;}
     }
+
+    public class BookedTimeJson
+    {
+        [JsonPropertyName("start")]
+        public long Start {get;set;}
+        
+        [JsonPropertyName("name")]
+        public string Name {get;set;}
+        
+        [JsonPropertyName("end")]
+        public long End {get;set;}
+
+        [JsonPropertyName("booker")]
+        public string Booker {get;set;}
+    }
 }

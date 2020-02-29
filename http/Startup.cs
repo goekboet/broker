@@ -29,18 +29,18 @@ namespace http
         public void ConfigureServices(IServiceCollection services)
         {
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-            
+
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
                     ForwardedHeaders.XForwardedProto;
-                
+
                 // Per default kestrel only forwards proxy-headers from localhost. You need to add
                 // ip-numbers into these lists or empty them to forward all.
                 options.KnownNetworks.Clear();
                 options.KnownProxies.Clear();
             });
-            
+
             services.AddAuthentication("Ids")
                 .AddJwtBearer("Ids", opts =>
                 {
@@ -48,12 +48,12 @@ namespace http
                         .GetSection("Bearer")
                         .Bind(opts);
                 });
-            
+
             services.AddAuthorization(options =>
             {
                 var issuer = Configuration["Bearer:Authority"];
                 options.AddPolicy(
-                    "bookings", 
+                    "bookings",
                     p => p.Requirements.Add(new ScopeRequirement("bookings", issuer)));
                 options.AddPolicy(
                     "publish",
@@ -77,7 +77,7 @@ namespace http
 
             services.AddCors(opts =>
             {
-                opts.AddPolicy("PublicData", b => 
+                opts.AddPolicy("PublicData", b =>
                 {
                     b.AllowAnyOrigin()
                         .AllowAnyHeader()
@@ -105,7 +105,7 @@ namespace http
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(
-            IApplicationBuilder app, 
+            IApplicationBuilder app,
             IWebHostEnvironment env)
         {
             app.UseForwardedHeaders();
@@ -119,7 +119,8 @@ namespace http
             app.UseCors("PublicData");
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseEndpoints(builder => {
+            app.UseEndpoints(builder =>
+            {
                 builder.MapControllers();
             });
         }

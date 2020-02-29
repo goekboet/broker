@@ -25,6 +25,11 @@ namespace postgres
             .AddTime(sub, t)
             .SubmitCommand();
 
+        public Task<IEnumerable<BookedTime>> GetBookedTimes(Guid sub, long from, long to) => _u
+            .ToConnection()
+            .GetBookedTimes(sub, from, to)
+            .SubmitQuery(GetBookedTimesExtensions.ToBookedTime);
+
         public Task<IEnumerable<Publisher>> GetPublisher(
             Guid sub) => _u
             .ToConnection()

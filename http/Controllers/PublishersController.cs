@@ -111,5 +111,24 @@ namespace http.Controllers
                     Booked = r.Booked.HasValue
                 });
         }
+
+        [HttpGet("publishers/{name}/booked")]
+        [Authorize("publish")]
+        public async Task<ActionResult> GetBookedTime(
+            long from,
+            long to
+        )
+        {
+            var sub = User.Claims.First(x => x.Type == "sub").Value;
+            var r = await _repo.GetBookedTimes(Guid.Parse(sub), from, to);
+
+            return Ok(from p in r select new BookedTimeJson
+            {
+                Start = p.Start,
+                End = p.End,
+                Name = p.Record,
+                Booker = p.Booker
+            });
+        }
     }
 }

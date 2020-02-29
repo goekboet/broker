@@ -25,6 +25,27 @@ namespace scheduling
         public Guid? Booked;
     }
 
+    public class BookedTime
+    {
+        public BookedTime(
+            long start,
+            long end,
+            string record,
+            string booker
+        )
+        {
+            Start = start;
+            End = end;
+            Record = record;
+            Booker = booker;
+        }
+
+        public long Start { get; }
+        public long End { get; }
+        public string Record { get; }
+        public string Booker {get;}
+    }
+
     public class Publisher
     {
         public Publisher(string name)
@@ -49,5 +70,9 @@ namespace scheduling
         Task AddPublisher(Guid sub, Publisher h);
 
         Task<IEnumerable<Publisher>> GetPublisher(Guid sub);
+        Task<IEnumerable<BookedTime>> GetBookedTimes(
+            Guid sub,
+            long from,
+            long to);
     }
 }

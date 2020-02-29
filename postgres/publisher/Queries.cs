@@ -112,4 +112,43 @@ namespace postgres
                     : r.GetGuid(r.GetOrdinal("booked"))
                 );
     }
+
+    public static class GetBookedTimesExtensions
+    {
+        private static string Sql { get; } = string.Join("\n", new[]
+            {
+                "select t.start, t.end, t.record, t.booked from times as t",
+                "where t.host = @sub",
+                "and t.booked is not null",
+                "and t.start between @from and @to",
+                "order by start asc"
+            });
+
+        public static NpgsqlCommand GetBookedTimes(
+            this NpgsqlConnection c,
+            Guid sub,
+            long from,
+            long to
+        )
+        {
+            var cmd = new NpgsqlCommand(Sql, c);
+            cmd.Parameters.AddMany(
+                new (string n, object v)[]
+                {
+                    ("sub", sub),
+                    ("from", from),
+                    ("to", to)
+                });
+
+            return cmd;
+        }
+
+        public static BookedTime ToBookedTime(IDataRecord r) => 
+            new BookedTime(
+                start: r.GetInt64(r.GetOrdinal("start")),
+                end: r.GetInt64(r.GetOrdinal("end")),
+                record: r.GetString(r.GetOrdinal("record")),
+                booker: r.GetGuid(r.GetOrdinal("booked")).ToString()
+                );
+    }
 }

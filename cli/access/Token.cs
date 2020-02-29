@@ -31,7 +31,7 @@ namespace cli
                 Email = email
             };
             await usrmgr.CreateAsync(user, password);
-
+            
             var idpclient = new HttpClient();
             var idpreply = await idpclient.RequestPasswordTokenAsync(
                 new PasswordTokenRequest
@@ -102,7 +102,7 @@ namespace cli
             }
 
             var refreshThreshold = DateTimeOffset.Now.Subtract(TimeSpan.FromMinutes(5));
-            if (access.ValidTo > refreshThreshold.ToUnixTimeMilliseconds())
+            if (access.ValidTo < refreshThreshold.ToUnixTimeMilliseconds())
             {
                 access = await Refresh(access);
                 await TokenStore.Write(usr, access);
