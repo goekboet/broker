@@ -40,9 +40,12 @@ public class BookingsRepo : IBookingsRepository
             .GetBookings(guest)
             .SubmitQuery(ListBookingsExtensions.ToBooking);
 
-        
+    public Task<Time> GetBooking(Guid sub, long start) => _u
+        .ToConnection()
+        .GetBooking(sub, start)
+        .SubmitSingleQuery(GetBookingQuery.ToBooking);
 
-        public Task<int> UnBook(Guid g, long s) => _u
+    public Task<int> UnBook(Guid g, long s) => _u
             .ToConnection()
             .UnBook(g, s)
             .SubmitCommand();

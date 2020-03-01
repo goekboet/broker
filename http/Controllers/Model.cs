@@ -21,6 +21,21 @@ namespace http.Controllers
         public bool Valid => Guid.TryParse(HostId, out var _) && Dur > 0;
     }
 
+    public class AppointmentJson
+    {
+        [JsonPropertyName("host")]
+        public string Host { get; set; }
+
+        [JsonPropertyName("token")]
+        public string Token { get; set; }
+
+        [JsonPropertyName("start")]
+        public long Start { get; set; }
+
+        [JsonPropertyName("dur")]
+        public int Dur { get; set; }
+    }
+
     public class HostJson
     {
         [JsonPropertyName("id")]

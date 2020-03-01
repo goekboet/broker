@@ -43,6 +43,8 @@ namespace PublicCallers.Scheduling
             Guid g,
             long s
         );
+
+        Task<Time> GetBooking(Guid sub, long start);
     }
 
     public interface IPublicMeetsRepository

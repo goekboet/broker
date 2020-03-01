@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using http.Authorization;
+using http.Twilio;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -20,10 +21,10 @@ namespace http
     {
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            Conf = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        public IConfiguration Conf { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -44,14 +45,14 @@ namespace http
             services.AddAuthentication("Ids")
                 .AddJwtBearer("Ids", opts =>
                 {
-                    Configuration
+                    Conf
                         .GetSection("Bearer")
                         .Bind(opts);
                 });
 
             services.AddAuthorization(options =>
             {
-                var issuer = Configuration["Bearer:Authority"];
+                var issuer = Conf["Bearer:Authority"];
                 options.AddPolicy(
                     "bookings",
                     p => p.Requirements.Add(new ScopeRequirement("bookings", issuer)));
@@ -61,16 +62,16 @@ namespace http
                 );
             });
 
-            if (Configuration["Dataprotection:Type"] == "Docker")
+            if (Conf["Dataprotection:Type"] == "Docker")
             {
                 services.AddDataProtection()
                     .PersistKeysToFileSystem(
-                        new DirectoryInfo(Configuration["Dataprotection:KeyPath"])
+                        new DirectoryInfo(Conf["Dataprotection:KeyPath"])
                     )
                     .ProtectKeysWithCertificate(
                         new X509Certificate2(
-                            Configuration["Dataprotection:CertPath"],
-                            Configuration["Dataprotection:CertPass"]
+                            Conf["Dataprotection:CertPath"],
+                            Conf["Dataprotection:CertPass"]
                         )
                     );
             }
@@ -86,10 +87,11 @@ namespace http
             });
 
             services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
-            services.AddSingleton<PgresUser>(PgresUserFromConfig(Configuration));
+            services.AddSingleton<PgresUser>(PgresUserFromConfig(Conf));
             services.AddScoped<IPublisherRepository, PublisherRepo>();
             services.AddScoped<IBookingsRepository, BookingsRepo>();
             services.AddScoped<IPublicMeetsRepository, PublicMeetRepo>();
+            services.Configure<TwilioOptions>(Conf.GetSection("Twilio"));
 
             services.AddControllers();
         }

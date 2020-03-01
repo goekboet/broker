@@ -193,4 +193,37 @@ namespace postgres
             return cmd;
         }
     }
+
+    public static class GetBookingQuery
+    {
+        private static string Sql { get; } = string.Join("\n", new[]
+            {
+                $"select t.host, t.start, t.end, t.record from times as t",
+                $"where t.booked = @sub",
+                $"and start = @start"
+            });
+        public static NpgsqlCommand GetBooking(
+            this NpgsqlConnection c,
+            Guid sub,
+            long start
+        )
+        {
+            var cmd = new NpgsqlCommand(Sql, c);
+            cmd.Parameters.AddMany(
+                new (string n, object v)[]
+                {
+                    ("sub", sub),
+                    ("start", start)
+                });
+
+            return cmd;
+        }
+
+        public static Time ToBooking(IDataRecord r) => new Time(
+            r.GetInt64(r.GetOrdinal("start")),
+            r.GetString(r.GetOrdinal("record")),
+            r.GetGuid(r.GetOrdinal("host")),
+            r.GetInt64(r.GetOrdinal("end"))
+        );
+    }
 }

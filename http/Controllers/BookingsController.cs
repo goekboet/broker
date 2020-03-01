@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using http.Twilio;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PublicCallers.Scheduling;
 
 namespace http.Controllers
@@ -16,13 +18,17 @@ namespace http.Controllers
         IBookingsRepository _repo;
         ILogger<BookingsController> _log;
 
+        TwilioOptions _twilio;
+
         public BookingsController(
             IBookingsRepository repo,
-            ILogger<BookingsController> log
+            ILogger<BookingsController> log,
+            IOptions<TwilioOptions> opts
         ) 
         {
             _repo = repo;
             _log = log;
+            _twilio = opts.Value;
         }
 
         [Authorize("bookings")]
@@ -95,13 +101,11 @@ namespace http.Controllers
             var user = User.Claims
                 .First(x => x.Type == "sub")
                 .Value;
-
-            var sw = Stopwatch.StartNew();
+            
             var r = await _repo.UnBook(
                 Guid.Parse(user),
                 start
             );
-            _log.LogInformation("UnBook took {ElapsedMs} ms", sw.ElapsedMilliseconds);
 
             if (r == 0)
             {
@@ -109,6 +113,40 @@ namespace http.Controllers
             }
 
             return NoContent();
+        }
+
+        [Authorize("bookings")]
+        [HttpGet("bookings/{start}")]
+        public async Task<ActionResult> GetBooking(
+            long start,
+            string name = "n/a")
+        {
+            var sub = User.Claims
+                .First(x => x.Type == "sub")
+                .Value;
+
+            var r = await _repo.GetBooking(Guid.Parse(sub), start);
+
+            if (r == null)
+            {
+                _log.LogWarning("No booking found for {sub}/{start}", sub, start);
+                return NotFound();
+            }
+
+            var token = _twilio.GetTwilioToken(name, r.Host.ToString(), r.Start);
+            if (token == null)
+            {
+                _log.LogError("could not generate token with {twilioAccount}", _twilio.AccountSid);
+                return StatusCode(500);
+            }
+
+            return Ok(new AppointmentJson
+            {
+                Host = r.Host.ToString(),
+                Token = token,
+                Start = r.Start,
+                Dur = (int)(r.End - r.Start)
+            });
         }
     }
 }
