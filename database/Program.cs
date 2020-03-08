@@ -28,11 +28,13 @@ namespace database
             var tablesUpR = await tablesUp.SubmitCommand();
 
             var hostData = File.ReadAllText("data/hosts.csv");
-            await creds.ToConnection(false).Copy("hosts", new[] { "sub", "handle" }, hostData);
+            await creds.ToConnection(false).Copy("hosts", new[] { "sub", "handle", "name" }, hostData);
 
-            creds.Db = "broker_test";
-            var dropDb = creds.ToConnection(false).DropDatabase(dbname);
-            var dropDbR = await dropDb.SubmitCommand();
+            var timesData = File.ReadAllText("data/times.csv");
+            await creds.ToConnection(false).Copy("times", new [] {"start", "\"end\"", "host", "record"}, timesData);
+            // creds.Db = "broker_test";
+            // var dropDb = creds.ToConnection(false).DropDatabase(dbname);
+            // var dropDbR = await dropDb.SubmitCommand();
 
             Console.WriteLine(dbname);
         }

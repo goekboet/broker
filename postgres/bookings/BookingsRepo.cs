@@ -16,16 +16,18 @@ public class BookingsRepo : IBookingsRepository
     }
 
     public async Task<Result<int>> Book(
-        Guid g, 
-        Guid h, 
-        long s)
+        Guid sub,
+        string host,
+        long start)
+    {
+        using (var conn = _u.ToConnection())
         {
-            try 
+            try
             {
                 var r = await _u
-                    .ToConnection()
-                    .Book(g, h, s)
-                    .SubmitCommand();
+                .ToConnection()
+                .Book(sub, host, start)
+                .SubmitCommand();
 
                 return new OK<int>(r);
             }
@@ -34,19 +36,37 @@ public class BookingsRepo : IBookingsRepository
                 return new Err<int>(e);
             }
         }
+    }
 
-        public Task<IEnumerable<Time>> GetBookedTimes(Guid guest) => _u
-            .ToConnection()
-            .GetBookings(guest)
-            .SubmitQuery(ListBookingsExtensions.ToBooking);
+    public async Task<IEnumerable<Time>> GetBookedTimes(Guid guest)
+    {
+        using (var conn = _u.ToConnection())
+        {
+            return await conn
+                .GetBookings(guest)
+                .SubmitQuery(ListBookingsExtensions.ToBooking);
+        }
+    }
 
-    public Task<Time> GetBooking(Guid sub, long start) => _u
-        .ToConnection()
-        .GetBooking(sub, start)
-        .SubmitSingleQuery(GetBookingQuery.ToBooking);
 
-    public Task<int> UnBook(Guid g, long s) => _u
-            .ToConnection()
-            .UnBook(g, s)
-            .SubmitCommand();
+    public async Task<Time> GetBooking(Guid sub, long start)
+    {
+        using (var conn = _u.ToConnection())
+        {
+            return await conn
+                .GetBooking(sub, start)
+                .SubmitSingleQuery(GetBookingQuery.ToBooking);
+        }
+    }
+
+
+    public async Task<int> UnBook(Guid g, long s)
+    {
+        using (var conn = _u.ToConnection())
+        {
+            return await conn
+                .UnBook(g, s)
+                .SubmitCommand();
+        }
+    }
 }

@@ -9,7 +9,7 @@ namespace postgres
 {
     public class PgresUser
     {
-        public PgresUser() {}
+        public PgresUser() { }
         public PgresUser(
             string host,
             string port,
@@ -34,6 +34,26 @@ namespace postgres
             $"Host={Host};Port={Port};Username={Handle};Password={Pwd};Database={Db}";
     }
 
+    public abstract class SqlResult<T> { }
+
+    public sealed class Success<T> : SqlResult<T>
+    {
+        public Success(T r)
+        {
+            Result = r;
+        }
+        public T Result { get; }
+    }
+
+    public sealed class Fail<T> : SqlResult<T>
+    {
+        public Fail(PostgresException e)
+        {
+            Exception = e;
+        }
+        public PostgresException Exception { get; }
+    }
+
     public static class PGres
     {
         public static async Task<IEnumerable<S>> SubmitQuery<S>(
@@ -41,6 +61,7 @@ namespace postgres
             Func<IDataRecord, S> selector)
         {
             var rs = new List<S>();
+
 
             using (cmd)
             {
@@ -52,7 +73,6 @@ namespace postgres
                         rs.Add(selector(rd));
                     }
                 }
-                cmd.Connection.Close();
             }
 
             return rs;
@@ -73,10 +93,36 @@ namespace postgres
                         r = selector(rd);
                     }
                 }
-                cmd.Connection.Close();
             }
 
             return r;
+        }
+
+        public static async Task<SqlResult<T>> SubmitCommandReturning<T>(
+            this NpgsqlCommand cmd,
+            Func<IDataRecord, T> selector)
+        {
+            var r = default(T);
+            try
+            {
+                using (cmd)
+                {
+                    await cmd.Connection.OpenAsync();
+                    using (var rd = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await rd.ReadAsync())
+                        {
+                            r = selector(rd);
+                        }
+                    }
+                }
+            }
+            catch (PostgresException e)
+            {
+                return new Fail<T>(e);
+            }
+
+            return new Success<T>(r);
         }
 
         public static async Task<int> SubmitCommand(
@@ -87,7 +133,6 @@ namespace postgres
             {
                 await cmd.Connection.OpenAsync();
                 a = await cmd.ExecuteNonQueryAsync();
-                cmd.Connection.Close();
             }
 
             return a;

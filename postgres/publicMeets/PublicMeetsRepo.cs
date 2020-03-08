@@ -13,19 +13,36 @@ namespace postgres
             PgresUser u)
         {
             _u = u;
+            PageSize = 100;
         }
 
-        public Task<IEnumerable<Host>> GetHosts() => _u
-            .ToConnection()
-            .ListHosts()
-            .SubmitQuery(ListHostExtensions.ToHost);
+        public int PageSize { get; }
 
-        public Task<IEnumerable<Time>> GetTimes(
-            Guid host, 
-            long start, 
-            long end) => _u
-            .ToConnection()
-            .ListTimes(host, start, end)
-            .SubmitQuery(ListTimesExtensions.ToMeet);
+        public async Task<IEnumerable<HostListing>> GetHosts(
+            int offset,
+            string notBeforeName = "")
+        {
+            using (var conn = _u.ToConnection())
+            {
+                return await conn
+                    .ListHosts(offset, PageSize, notBeforeName)
+                    .SubmitQuery(ListHostExtensions.ToHost);
+            }
+        }
+
+
+        public async Task<IEnumerable<Time>> GetTimes(
+            string host,
+            long start,
+            long end)
+        {
+            using (var conn = _u.ToConnection())
+            {
+                return await conn
+                    .ListTimes(host, start, end)
+                    .SubmitQuery(ListTimesExtensions.ToMeet);
+            }
+        }
+
     }
 }

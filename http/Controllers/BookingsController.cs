@@ -31,6 +31,19 @@ namespace http.Controllers
             _twilio = opts.Value;
         }
 
+        Guid GetUserId()
+        {
+            var sub = User.Claims.First(x => x.Type == "sub").Value;
+            if (Guid.TryParse(sub, out var id))
+            {
+                return id;
+            }
+            else
+            {
+                throw new Exception("Unable to read userId");
+            }
+        }
+
         [Authorize("bookings")]
         [HttpPost("bookings")]
         public async Task<ActionResult> Book(
@@ -42,13 +55,11 @@ namespace http.Controllers
                 return BadRequest();
             }
 
-            var user = User.Claims
-                .First(x => x.Type == "sub")
-                .Value;
+            var sub = GetUserId();
 
             var r = await _repo.Book(
-                Guid.Parse(user),
-                Guid.Parse(req.HostId),
+                sub,
+                req.Host,
                 req.Start
             );
            
@@ -65,7 +76,7 @@ namespace http.Controllers
                     return NotFound();
                 }
 
-                _log.LogInformation($"{user} created booking for {req.HostId}/{req.Start}");
+                _log.LogInformation($"{sub} created booking for {req.Host}/{req.Start}");
                 return Created("bookings", req);
             }
         }
@@ -85,7 +96,7 @@ namespace http.Controllers
 
             return Ok(r.Select(x => new TimeJson
             {
-                HostId = x.Host.ToString(),
+                Host = x.Host.ToString(),
                 Name = x.Name,
                 Start = x.Start,
                 Dur = (int)((x.End - x.Start) / (1000 * 60))
@@ -142,7 +153,7 @@ namespace http.Controllers
 
             return Ok(new AppointmentJson
             {
-                Host = r.Host.ToString(),
+                Counterpart = r.Host.ToString(),
                 Token = token,
                 Start = r.Start,
                 Dur = (int)(r.End - r.Start)

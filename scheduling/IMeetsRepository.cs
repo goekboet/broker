@@ -33,9 +33,9 @@ namespace PublicCallers.Scheduling
 
         // POST   bookings <- sub via jwt
         Task<Result<int>> Book(
-            Guid g,
-            Guid h,
-            long s
+            Guid sub,
+            string handle,
+            long start
         );
         
         // DELETE bookings <- sub via jwt (host, start) via body
@@ -50,10 +50,14 @@ namespace PublicCallers.Scheduling
     public interface IPublicMeetsRepository
     {
         // GET hosts
-        Task<IEnumerable<Host>> GetHosts();
+        Task<IEnumerable<HostListing>> GetHosts(
+            int offset,
+            string notBeforeName = "");
+
+        int PageSize { get; } 
 
         Task<IEnumerable<Time>> GetTimes(
-            Guid host,
+            string host,
             long start,
             long end
         );

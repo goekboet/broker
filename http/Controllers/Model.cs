@@ -5,8 +5,8 @@ namespace http.Controllers
 {
     public class TimeJson
     {
-        [JsonPropertyName("hostId")]
-        public string HostId { get; set; }
+        [JsonPropertyName("host")]
+        public string Host { get; set; }
 
         [JsonPropertyName("name")]
         public string Name { get; set; }
@@ -18,13 +18,13 @@ namespace http.Controllers
         public int Dur { get; set; }
 
         [JsonIgnore]
-        public bool Valid => Guid.TryParse(HostId, out var _) && Dur > 0;
+        public bool Valid => Dur > 0;
     }
 
     public class AppointmentJson
     {
-        [JsonPropertyName("host")]
-        public string Host { get; set; }
+        [JsonPropertyName("counterpart")]
+        public string Counterpart { get; set; }
 
         [JsonPropertyName("token")]
         public string Token { get; set; }
@@ -48,10 +48,22 @@ namespace http.Controllers
         public string TimeZone { get; set; }
     }
 
+    public class HostListingJson
+    {
+        [JsonPropertyName("handle")]
+        public string Handle { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+    }
+
     public class PublisherJson
     {
         [JsonPropertyName("name")]
         public string Name { get; set; }
+
+        [JsonPropertyName("handle")]
+        public string Handle { get; set; }
     }
 
     public class PublishTimeJson
@@ -68,6 +80,8 @@ namespace http.Controllers
         [JsonPropertyName("booked")]
         public bool Booked {get;set;}
     }
+
+    
 
     public class BookedTimeJson
     {

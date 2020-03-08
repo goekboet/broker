@@ -45,7 +45,7 @@ namespace cli
             {
                 usr = args[0];
             }
-
+            Console.WriteLine($"token: {usr}");
 
             var now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             var access = await Token.GetAccess(sp, now, usr);

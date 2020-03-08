@@ -24,22 +24,31 @@ namespace http.Controllers
             _repo = repo;
         }
         
-        [HttpGet("hosts")]
-        public async Task<ActionResult<IEnumerable<object>>> GetHosts()
-        {
-            var r = await _repo.GetHosts();
+        int ParsePageParam(string s) => 
+            int.TryParse(s, out int p) ? p : 0;
+        
 
-            return Ok(r.Select(x => new HostJson
-            {
-                Id = x.Id.ToString(),
-                Name = x.Name,
-                TimeZone = "n/a"
-            }));
+        [HttpGet("hosts")]
+        public async Task<ActionResult<IEnumerable<object>>> GetHosts(
+            string notBeforeName,
+            string p
+        )
+        {
+            var page = ParsePageParam(p);
+
+            var r = await _repo.GetHosts(page * 100, notBeforeName ?? string.Empty);
+            var listing = r.Select(x => new HostListingJson
+                {
+                    Name = x.Name,
+                    Handle = x.Handle
+                }).ToArray();
+
+            return Ok(listing);
         }
 
         [HttpGet("hosts/{host}/times")]
         public async Task<ActionResult<IEnumerable<TimeJson>>> ListTimes(
-            Guid host,
+            string host,
             long from,
             long to)
         {
@@ -47,10 +56,10 @@ namespace http.Controllers
 
             return Ok(r.Select(x => new TimeJson
             {
-                HostId = x.Host.ToString(),
+                Host = x.Host.ToString(),
                 Name = x.Name,
                 Start = x.Start,
-                Dur = (int)((x.End - x.Start) / (1000 * 60))
+                Dur = (int)((x.End - x.Start) / 60)
             }));
         }
     }

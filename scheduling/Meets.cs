@@ -19,12 +19,27 @@ namespace PublicCallers.Scheduling
         public string Name { get; }
     }
 
+    public class HostListing
+    {
+        public HostListing(
+            string handle,
+            string name
+        )
+        {
+            Handle = handle;
+            Name = name;
+        }
+        
+        public string Handle { get; }
+        public string Name { get; }
+    }
+
     public class Time
     {
         public Time(
             long start,
             string name,
-            Guid host,
+            string host,
             long end
             )
         {
@@ -36,7 +51,7 @@ namespace PublicCallers.Scheduling
 
         public long Start { get; }
         public string Name { get; }
-        public Guid Host { get; }
+        public string Host { get; }
         public long End { get; }
     }
 

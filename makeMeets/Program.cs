@@ -1,274 +1,113 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using PublicCallers.Scheduling;
-
-using Schedule = PublicCallers.Scheduling.SchedulingExtensions;
+using NodaTime;
 
 namespace makeMeets
 {
-    public class MeetOwner
+    public class Host
     {
-        public string Sub { get; set; }
-        public string Tz { get; set; }
+        public Guid Sub { get; set; }
         public string Handle { get; set; }
-        public Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>> DailyTimes { get; set; }
+        public string Name { get; set; }
+
+        public override string ToString() =>
+            $"{Handle} - {Name}";
     }
 
-    static class Seed
+    public class Time
     {
-        public static IEnumerable<(int h, int m, int dur)> StandardTimes => new[]
-        {
-            (10, 0, 45),
-            (11, 0, 45),
-            (13, 0, 45),
-            (14, 0, 45),
-            (15, 0, 45),
-            (16, 0, 45),
-            (17, 0, 45),
-            (18, 0, 45)
-        };
-
-        public static IEnumerable<MeetOwner> Host => new[]
-        {
-            new MeetOwner
-            {
-                Sub = "fea5983e-8124-43bf-b632-c5ec90c0003a",
-                Handle = "First",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "00f29433-4fea-4a83-8883-c2fad9ced961",
-                Handle = "Second",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "969f3a55-546b-4e94-9b4a-143886f5142e",
-                Handle = "Third",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "05fde755-c776-4a65-9333-ea3b558ab94a",
-                Handle = "Forth",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "d47d93a7-064b-49fc-96e2-9d4b1050c544",
-                Handle = "Fifth",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "3e9d9aa2-9dad-42bc-b623-fa87d502d9ff",
-                Handle = "Sixth",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "23f900d8-4b52-4e96-8ab9-7a610992b0d2",
-                Handle = "Seventh",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "37818de2-b07c-4c89-b464-5c293e68adeb",
-                Handle = "Eighth",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "2e330418-3e6f-4241-a0fe-4da5c9a79533",
-                Handle = "Nineth",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "e9418a96-39a0-404d-8f8f-d2df046d2790",
-                Handle = "Tenth",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "f3f0b3a7-f033-447c-afca-2076b5e48950",
-                Handle = "Eleventh",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            },
-            new MeetOwner
-            {
-                Sub = "26991761-2335-4578-915f-f9943ef90b53",
-                Handle = "Twelfth",
-                DailyTimes = new Dictionary<Weekday, IEnumerable<(int h, int m, int dur)>>
-                {
-                    [Weekday.Mon] = StandardTimes,
-                    [Weekday.Tue] = StandardTimes,
-                    [Weekday.Wed] = StandardTimes,
-                    [Weekday.Thu] = StandardTimes,
-                    [Weekday.Fri] = StandardTimes
-                }
-            }
-        };
+        public long Start { get; set; }
+        public long End { get; set; }
+        public string Host { get; set; }
+        public string Record { get; set; }
     }
 
     class Program
     {
+        static Random Rng { get; } = new Random();
+        static IEnumerable<LocalDate> AllDatesInYear(int year)
+        {
+            var date = new LocalDate(year, 1, 1);
+            while (date.Year == year)
+            {
+                yield return date;
+                date = date.PlusDays(1);
+            }
+        }
+
+        static IEnumerable<LocalTime> Times(
+            LocalTime first,
+            int forHours,
+            double keepPct)
+        {
+            var time = first;
+            while (forHours-- > 0)
+            {
+                if (Rng.NextDouble() < keepPct)
+                {
+                    yield return time;
+                }
+                time = time.PlusHours(1);
+            }
+        }
+
+        static IEnumerable<Host> ReadHosts(string path)
+        {
+            var lines = File.ReadAllLines(path);
+
+            return lines
+                .Skip(1)
+                .Select(x => x.Split(","))
+                .Select(x => new Host
+                {
+                    Sub = Guid.Parse(x[0]),
+                    Handle = x[1],
+                    Name = x[2]
+                });
+        }
+
+        public static IEnumerable<LocalDateTime> ForDay(LocalDate d) =>
+            from t in Times(new LocalTime(8, 0), 10, 0.8)
+            select new LocalDateTime(d.Year, d.Month, d.Day, t.Hour, t.Minute);
+
+        public static IEnumerable<Time> ForHost(Host h, int year)
+        {
+            var tz = DateTimeZoneProviders.Tzdb["Europe/Stockholm"];
+            
+            return AllDatesInYear(year)
+                .SelectMany(x => ForDay(x))
+                .Select(x => new Time
+                {
+                    Start = x.InZoneLeniently(tz).ToInstant().ToUnixTimeSeconds(),
+                    End = x.PlusMinutes(45).InZoneLeniently(tz).ToInstant().ToUnixTimeSeconds(),
+                    Host = h.Handle,
+                    Record = x.InZoneLeniently(tz).ToString()
+                });
+        }
+
         static int Main(string[] args)
         {
-            if (args.Length == 0 || args[0] == "")
-            {
-                Useage();
-                return 0;
-            }
+            // var allDaysIn2020 = AllDatesInYear(2020)
+            //     .Select(x => x.ToString());
 
-            switch (args[0])
-            {
-                case "hosts":
-                    Hosts();
-                    break;
-                case "meets":
-                    Meets(args.Skip(1));
-                    break;
-                default:
-                    Useage();
-                    break;
-            }
+            //Console.WriteLine(string.Join("\n", allDaysIn2020));
+
+            // var times = Times(new LocalTime(8, 0), 10, 8 / 10)
+            //     .Select(x => x.ToString());
+
+            //Console.WriteLine(string.Join("\n", times));
+            var hosts = ReadHosts("hosts/hosts.csv");
+            var times = hosts
+                .SelectMany(x => ForHost(x, 2020));
+            // Console.WriteLine(hosts.Count());
+            Console.WriteLine(
+                string.Join("\n", 
+                (from t in times
+                select $"{t.Start},{t.End},{t.Host},{t.Record}")));
 
             return 0;
-        }
-
-        private static void MeetUseage()
-        {
-            Console.WriteLine("meets year week repeat");
-            Console.WriteLine("year: data begins this year. Must parse as int");
-            Console.WriteLine("week: data begins this week. Must parse as int");
-            Console.WriteLine("repeat: Number of week data covers. Must parse as int.");
-        }
-
-        private static void Meets(IEnumerable<string> args)
-        {
-            if (args.Count() != 3)
-            {
-                MeetUseage();
-                return;
-            }
-            var year = int.TryParse(args.ElementAt(0), out var y);
-            var week = int.TryParse(args.ElementAt(1), out int w);
-            var repeat = int.TryParse(args.ElementAt(2), out int r);
-            if (!new[] { year, week, repeat }.All(x => x))
-            {
-                MeetUseage();
-                return;
-            }
-
-            Console.WriteLine("host,start,end,record,booked");
-            var data =
-                from h in Seed.Host
-                from s in Schedule.WeeklySchedule(y, w, h.DailyTimes, r)
-                let d = s.ToTimeData(h.Sub, TimeZoneInfo.FindSystemTimeZoneById(h.Tz))
-                select $"{d.Host},{d.Start},{d.End},{d.Record},";
-
-            Console.WriteLine(string.Join(Environment.NewLine, data));
-        }
-
-        static void Useage()
-        {
-            Console.WriteLine("List of data:");
-            Console.WriteLine("tz");
-            Console.WriteLine("hosts");
-            Console.WriteLine("meets");
-            Console.WriteLine();
-            Console.WriteLine("Program will print .csv for any of these data in first arg.");
-        }
-
-        static void Hosts()
-        {
-            Console.WriteLine("sub, handle");
-            var data =
-                from h in Seed.Host
-                select $"{h.Sub},{h.Handle}";
-
-            Console.WriteLine(string.Join(Environment.NewLine, data));
         }
     }
 }

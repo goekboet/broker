@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 using System.IO;
 using System.Threading.Tasks;
@@ -48,6 +49,7 @@ namespace postgres.test
         {
             var cols = string.Join(", ", columns);
             var copy = $"COPY {table} ({cols}) FROM STDIN WITH csv header";
+            Console.WriteLine(copy);
             await c.OpenAsync();
             using (var w = c.BeginTextImport(copy))
             {
