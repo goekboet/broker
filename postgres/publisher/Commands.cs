@@ -5,6 +5,44 @@ using scheduling;
 
 namespace postgres
 {
+    public static class GetConflictExtensions
+    {
+        private static string Sql { get; } = string.Join("\n", new[]
+            {
+                "select t.host, t.start, t.end from times as t",
+                "join hosts as h on t.host = h.handle",
+                "where h.sub = @sub",
+                "and @start between t.start and t.\"end\"",
+                "or @end between t.start and t.\"end\""
+            });
+
+        public static NpgsqlCommand GetConflict(
+            this NpgsqlConnection c,
+            Guid sub,
+            long start,
+            long end
+        )
+        {
+            var cmd = new NpgsqlCommand(Sql, c);
+            cmd.Parameters.AddMany(
+                new (string n, object v)[]
+                {
+                    ("sub", sub),
+                    ("start", start),
+                    ("end", end)
+                });
+
+            return cmd;
+        }
+
+        public static Conflict ToHost(IDataRecord r) => 
+            new Conflict(
+                handle: r.GetString(r.GetOrdinal("handle")),
+                start: r.GetInt64(r.GetOrdinal("start")),
+                end: r.GetInt64(r.GetOrdinal("end"))
+                );
+    }
+
     public static class AddPublisherExtensions
     {
         private static string Sql { get; } = string.Join("\n", new[]

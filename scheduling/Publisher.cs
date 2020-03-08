@@ -63,6 +63,23 @@ namespace scheduling
         public string Handle {get;}
     }
 
+    public class Conflict
+    {
+        public Conflict(
+            string handle,
+            long start,
+            long end)
+        {
+            Handle = handle;
+            Start = start;
+            End = end;
+        }
+
+        public string Handle { get; }
+        public long Start {get;}
+        public long End {get;}
+    }
+
     public abstract class AddHostResult<T>
     {
     }
