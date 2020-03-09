@@ -4,35 +4,11 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Npgsql;
+using PublicCallers.Scheduling;
 
 namespace postgres
 {
-    public class PgresUser
-    {
-        public PgresUser() { }
-        public PgresUser(
-            string host,
-            string port,
-            string handle,
-            string pwd,
-            string db
-            )
-        {
-            Host = host;
-            Port = port;
-            Handle = handle;
-            Pwd = pwd;
-            Db = db;
-        }
-        public string Host { get; set; }
-        public string Port { get; set; }
-        public string Handle { get; set; }
-        public string Pwd { get; set; }
-        public string Db { get; set; }
-
-        public override string ToString() =>
-            $"Host={Host};Port={Port};Username={Handle};Password={Pwd};Database={Db}";
-    }
+    
 
     public abstract class SqlResult<T> { }
 
@@ -61,7 +37,6 @@ namespace postgres
             Func<IDataRecord, S> selector)
         {
             var rs = new List<S>();
-
 
             using (cmd)
             {

@@ -38,28 +38,6 @@ public class BookingsRepo : IBookingsRepository
         }
     }
 
-    public async Task<IEnumerable<Time>> GetBookedTimes(Guid guest)
-    {
-        using (var conn = _u.ToConnection())
-        {
-            return await conn
-                .GetBookings(guest)
-                .SubmitQuery(ListBookingsExtensions.ToBooking);
-        }
-    }
-
-
-    public async Task<Time> GetBooking(Guid sub, long start)
-    {
-        using (var conn = _u.ToConnection())
-        {
-            return await conn
-                .GetBooking(sub, start)
-                .SubmitSingleQuery(GetBookingQuery.ToBooking);
-        }
-    }
-
-
     public async Task<int> UnBook(Guid g, long s)
     {
         using (var conn = _u.ToConnection())

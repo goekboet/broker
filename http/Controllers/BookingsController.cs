@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using http.Queries;
 using http.Twilio;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,9 @@ namespace http.Controllers
     [ApiController]
     public class BookingsController : ControllerBase
     {
+        PgresUser _creds;
+        IDataSource _db;
+
         IBookingsRepository _repo;
         ILogger<BookingsController> _log;
 
@@ -23,9 +27,13 @@ namespace http.Controllers
         public BookingsController(
             IBookingsRepository repo,
             ILogger<BookingsController> log,
-            IOptions<TwilioOptions> opts
+            IOptions<TwilioOptions> opts,
+            IDataSource db,
+            PgresUser creds
         ) 
         {
+            _db = db;
+            _creds = creds;
             _repo = repo;
             _log = log;
             _twilio = opts.Value;
@@ -85,16 +93,10 @@ namespace http.Controllers
         [HttpGet("bookings")]
         public async Task<ActionResult<IEnumerable<TimeJson>>> GetBookings()
         {
-            var user = User.Claims
-                .First(x => x.Type == "sub")
-                .Value;
+            var query = new GetMyBookings(GetUserId());
+            var result = await _db.Submit(_creds, query);
 
-            var sw = Stopwatch.StartNew();
-            var r = await _repo
-                .GetBookedTimes(Guid.Parse(user));
-            _log.LogInformation("GetBookings took {ElapsedMs} ms", sw.ElapsedMilliseconds);
-
-            return Ok(r.Select(x => new TimeJson
+            return Ok(result.Select(x => new TimeJson
             {
                 Host = x.Host.ToString(),
                 Name = x.Name,
@@ -132,15 +134,13 @@ namespace http.Controllers
             long start,
             string name = "n/a")
         {
-            var sub = User.Claims
-                .First(x => x.Type == "sub")
-                .Value;
-
-            var r = await _repo.GetBooking(Guid.Parse(sub), start);
+            var sub = GetUserId();
+            var query = new GetBooking(sub, start);
+            var result = await _db.Submit(_creds, query);
+            var r = result.SingleOrDefault();
 
             if (r == null)
             {
-                _log.LogWarning("No booking found for {sub}/{start}", sub, start);
                 return NotFound();
             }
 

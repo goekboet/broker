@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using postgres;
 using postgres.test;
+using PublicCallers.Scheduling;
 
 namespace endpointTests
 {

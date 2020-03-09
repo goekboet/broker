@@ -26,11 +26,6 @@ namespace PublicCallers.Scheduling
 
     public interface IBookingsRepository
     {
-         // GET    bookings
-        Task<IEnumerable<Time>> GetBookedTimes(
-            Guid guest
-        );
-
         // POST   bookings <- sub via jwt
         Task<Result<int>> Book(
             Guid sub,
@@ -43,25 +38,5 @@ namespace PublicCallers.Scheduling
             Guid g,
             long s
         );
-
-        Task<Time> GetBooking(Guid sub, long start);
     }
-
-    public interface IPublicMeetsRepository
-    {
-        // GET hosts
-        Task<IEnumerable<HostListing>> GetHosts(
-            int offset,
-            string notBeforeName = "");
-
-        int PageSize { get; } 
-
-        Task<IEnumerable<Time>> GetTimes(
-            string host,
-            long start,
-            long end
-        );
-    }
-
-    
 }
