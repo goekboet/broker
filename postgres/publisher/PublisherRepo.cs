@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using PublicCallers.Scheduling;
 using scheduling;
@@ -46,59 +45,6 @@ namespace postgres
             {
                 await conn.AddTime(sub, t)
                     .SubmitCommand();
-            }
-        }
-
-
-        public async Task<IEnumerable<BookedTime>> GetBookedTimes(
-            Guid sub, 
-            string handle,
-            long from, 
-            long to)
-        {
-            using (var conn = _u.ToConnection())
-            {
-                return await conn
-                    .GetBookedTimes(sub, handle, from, to)
-                    .SubmitQuery(GetBookedTimesExtensions.ToBookedTime);
-            }
-        }
-
-
-        public async Task<IEnumerable<NewHost>> GetPublisher(
-            Guid sub)
-        {
-            using (var conn = _u.ToConnection())
-            {
-                return await conn
-                    .GetPublisher(sub)
-                    .SubmitQuery(GetPublisherExtensions.ToHost);
-            }
-        }
-
-
-        public async Task<PublishedTime> GetTime(Guid sub, string handle, long start)
-        {
-            using (var conn = _u.ToConnection())
-            {
-                return await conn
-                    .GetPublishedTime(sub, handle, start)
-                    .SubmitSingleQuery(GetPublishedTimesExtensions.ToPublishedTime);
-            }
-        }
-
-
-        public async Task<IEnumerable<PublishedTime>> ListPublishedTimes(
-            Guid sub,
-            string handle,
-            long from,
-            long to)
-        {
-            using (var conn = _u.ToConnection())
-            {
-                return await conn
-                    .ListPublisherTimes(sub, handle, from, to)
-                    .SubmitQuery(ListPublisherTimesExtensions.ToPublishedTime);
             }
         }
     }

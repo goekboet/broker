@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using http.Twilio;
 using Microsoft.AspNetCore.Authorization;
@@ -18,6 +17,8 @@ namespace http.Publisher
         IPublisherRepository _repo;
         ILogger<PublishersController> _log;
         TwilioOptions _twilio;
+        IDataSource _db;
+        PgresUser _creds;
 
         Guid GetUserId()
         {
@@ -35,9 +36,13 @@ namespace http.Publisher
         public PublishersController(
             IPublisherRepository repo,
             ILogger<PublishersController> log,
-            IOptions<TwilioOptions> opts
+            IOptions<TwilioOptions> opts,
+            IDataSource db,
+            PgresUser creds
         )
         {
+            _db = db;
+            _creds = creds;
             _repo = repo;
             _log = log;
             _twilio = opts.Value;
@@ -89,10 +94,10 @@ namespace http.Publisher
         [Authorize("publish")]
         public async Task<ActionResult> ListPublishers()
         {
-            var sub = GetUserId();
-            var r = await _repo.GetPublisher(sub);
+            var query = new ListPublishers(GetUserId());
+            var result = await _db.Submit(_creds, query);
 
-            return Ok(r);
+            return Ok(result);
         }
 
         // [HttpGet("publishers/{name}")]
@@ -133,10 +138,15 @@ namespace http.Publisher
             long to
         )
         {
-            var sub = GetUserId();
-            var r = await _repo.ListPublishedTimes(sub, handle, from, to);
+            var query = new ListPublishedTimes(
+                sub: GetUserId(),
+                handle: handle,
+                from: from,
+                to: to
+            );
+            var result = await _db.Submit(_creds, query);
 
-            return Ok(from p in r
+            return Ok(from p in result
                       select new PublishTimeJson
                       {
                           Start = p.Start,
@@ -154,14 +164,21 @@ namespace http.Publisher
         )
         {
             var sub = GetUserId();
-            var r = await _repo.GetTime(sub, handle, start);
-            var token = _twilio.GetTwilioToken(sub.ToString(), r.HostHandle, r.Start);
+            var query = new GetPublishedTime(
+                sub: sub,
+                host: handle, 
+                start: start
+            );
+            var r = await _db.Submit(_creds, query);
+            var result = r.Single(); 
+
+            var token = _twilio.GetTwilioToken(sub.ToString(), result.HostHandle, result.Start);
             return Ok(
                 new AppointmentJson
                 {
-                    Start = r.Start,
-                    Dur = (int)((r.End - r.Start) / 60),
-                    Counterpart = r.Booked?.ToString(),
+                    Start = result.Start,
+                    Dur = (int)((result.End - result.Start) / 60),
+                    Counterpart = result.Booked?.ToString(),
                     Token = token
                 });
         }
@@ -174,10 +191,15 @@ namespace http.Publisher
             long to
         )
         {
-            var sub = GetUserId();
-            var r = await _repo.GetBookedTimes(sub, handle, from, to);
+            var query = new GetBookedPublishedTimes(
+                sub: GetUserId(),
+                handle: handle,
+                from: from,
+                to: to
+            );
+            var result = await _db.Submit(_creds, query);
 
-            return Ok(from p in r
+            return Ok(from p in result
                       select new BookedTimeJson
                       {
                           Start = p.Start,

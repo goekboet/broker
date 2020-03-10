@@ -103,21 +103,7 @@ namespace scheduling
     {
         // GET    hosts/{id}/times?from={from}&to={to}
         Task AddTime(Guid sub, PublishedTime t);
-        Task<IEnumerable<PublishedTime>> ListPublishedTimes(
-            Guid sub,
-            string handle,
-            long from,
-            long to);
-
-        Task<PublishedTime> GetTime(Guid sub, string handle, long start);
 
         Task<AddHostResult<NewHost>> AddPublisher(Guid sub, NewHost h);
-
-        Task<IEnumerable<NewHost>> GetPublisher(Guid sub);
-        Task<IEnumerable<BookedTime>> GetBookedTimes(
-            Guid sub,
-            string handle,
-            long from,
-            long to);
     }
 }
