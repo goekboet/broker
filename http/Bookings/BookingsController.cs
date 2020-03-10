@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using http.Queries;
 using http.Twilio;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PublicCallers.Scheduling;
 
-namespace http.Controllers
+namespace http.Bookings
 {
     [ApiController]
     public class BookingsController : ControllerBase

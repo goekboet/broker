@@ -4,7 +4,7 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using PublicCallers.Scheduling;
 
-namespace http.Queries
+namespace http.Public
 {
     public sealed class HostListingPagedByHandle : IQuery<HostListing>
     {

@@ -1,7 +1,6 @@
-using System;
 using System.Text.Json.Serialization;
 
-namespace http.Controllers
+namespace http
 {
     public class TimeJson
     {

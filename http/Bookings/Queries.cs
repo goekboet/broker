@@ -5,7 +5,7 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using PublicCallers.Scheduling;
 
-namespace http.Queries
+namespace http.Bookings
 {
     public sealed class GetMyBookings : IQuery<Time>
     {

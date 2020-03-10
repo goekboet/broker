@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using http.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using PublicCallers.Scheduling;
 
-namespace http.Controllers
+namespace http.Public
 {
     [EnableCors("PublicData")]
     [AllowAnonymous]

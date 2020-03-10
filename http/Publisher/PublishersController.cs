@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 using PublicCallers.Scheduling;
 using scheduling;
 
-namespace http.Controllers
+namespace http.Publisher
 {
     [ApiController]
     public class PublishersController : ControllerBase
