@@ -90,7 +90,6 @@ namespace http
             services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
             services.AddSingleton<PgresUser>(PgresUserFromConfig(Conf));
             services.AddScoped<IPublisherRepository, PublisherRepo>();
-            services.AddScoped<IBookingsRepository, BookingsRepo>();
             services.AddSingleton<IDataSource, PgresDb>();
             services.Configure<TwilioOptions>(Conf.GetSection("Twilio"));
 

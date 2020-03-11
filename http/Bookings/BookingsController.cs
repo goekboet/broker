@@ -16,14 +16,10 @@ namespace http.Bookings
     {
         PgresUser _creds;
         IDataSource _db;
-
-        IBookingsRepository _repo;
         ILogger<BookingsController> _log;
-
         TwilioOptions _twilio;
 
         public BookingsController(
-            IBookingsRepository repo,
             ILogger<BookingsController> log,
             IOptions<TwilioOptions> opts,
             IDataSource db,
@@ -32,7 +28,6 @@ namespace http.Bookings
         {
             _db = db;
             _creds = creds;
-            _repo = repo;
             _log = log;
             _twilio = opts.Value;
         }
@@ -61,29 +56,44 @@ namespace http.Bookings
                 return BadRequest();
             }
 
-            var sub = GetUserId();
-
-            var r = await _repo.Book(
-                sub,
-                req.Host,
-                req.Start
+            var getTime = new GetTime(
+                sub: GetUserId(),
+                host: req.Host,
+                start: req.Start
             );
-           
-            if (r is Err<int> err)
-            {
-                _log.LogWarning("Booking request conflict with db-state.", err.Exception);
+            var getTimeResult = (await _db.Submit(_creds, getTime))
+                .SingleOrDefault();
 
-                return Conflict();
+            if (getTimeResult == null)
+            {
+                return NotFound();
             }
-            else 
-            {
-                if (r is OK<int> effect && effect.Result == 0)
-                {
-                    return NotFound();
-                }
 
-                _log.LogInformation($"{sub} created booking for {req.Host}/{req.Start}");
-                return Created("bookings", req);
+            var conflictsQuery = new GetBookingConflict(
+                sub: GetUserId(),
+                host: getTimeResult.Host,
+                start: getTimeResult.Start,
+                end: getTimeResult.End
+            );
+            var conflictsResult = (await _db.Submit(_creds, conflictsQuery))
+                .SingleOrDefault();
+
+            if (conflictsResult == null)
+            {
+                var book = new BookCommand(
+                    sub: GetUserId(),
+                    host: getTimeResult.Host,
+                    start: getTimeResult.Start
+                );
+                var r = await _db.Submit(_creds, book);
+
+                return Created(
+                    $"bookings/{getTimeResult.Start}", 
+                    r.Single());
+            }
+            else
+            {
+                return Conflict(conflictsResult);
             }
         }
 
@@ -103,22 +113,20 @@ namespace http.Bookings
             }));           
         }
 
-        // POST api/values
         [Authorize("bookings")]
         [HttpDelete("bookings/{start}")]
         public async Task<ActionResult> UnBook(
             long start)
         {
-            var user = User.Claims
-                .First(x => x.Type == "sub")
-                .Value;
-            
-            var r = await _repo.UnBook(
-                Guid.Parse(user),
-                start
+            var unbook = new UnBookCommand(
+                sub: GetUserId(),
+                start: start
             );
+            var result = await _db.SubmitCommand(
+                _creds, 
+                unbook);
 
-            if (r == 0)
+            if (result == 0)
             {
                 return NotFound();
             }

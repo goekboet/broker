@@ -24,5 +24,20 @@ namespace postgres.Pgres2
 
             return r;
         }
+
+        public async Task<int> SubmitCommand(
+            PgresUser creds, 
+            ICommand command)
+        {
+            using var c = creds.ToConnection();
+            using var cmd = new NpgsqlCommand(
+                command.Sql, c);
+            cmd.Parameters.AddMany(command.Parameters);
+
+            await c.OpenAsync();
+            var r = await cmd.ExecuteNonQueryAsync();
+
+            return r;
+        }
     }
 }

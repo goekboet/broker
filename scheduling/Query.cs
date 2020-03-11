@@ -41,10 +41,20 @@ namespace PublicCallers.Scheduling
         Task<IEnumerable<T>> Read(DbDataReader r);
     }
 
+    public interface ICommand
+    {
+        string Sql {get;}
+        (string n, object v)[] Parameters {get;}
+    }
+
     public interface IDataSource
     {
         Task<IEnumerable<T>> Submit<T>(
             PgresUser creds,
             IQuery<T> q);
+
+        Task<int> SubmitCommand(
+            PgresUser creds,
+            ICommand c);
     }
 }

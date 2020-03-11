@@ -53,26 +53,6 @@ namespace postgres
             return rs;
         }
 
-        public static async Task<T> SubmitSingleQuery<T>(
-            this NpgsqlCommand cmd,
-            Func<IDataRecord, T> selector)
-        {
-            var r = default(T);
-            using (cmd)
-            {
-                await cmd.Connection.OpenAsync();
-                using (var rd = await cmd.ExecuteReaderAsync())
-                {
-                    if (await rd.ReadAsync())
-                    {
-                        r = selector(rd);
-                    }
-                }
-            }
-
-            return r;
-        }
-
         public static async Task<SqlResult<T>> SubmitCommandReturning<T>(
             this NpgsqlCommand cmd,
             Func<IDataRecord, T> selector)
