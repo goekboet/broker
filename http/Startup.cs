@@ -11,10 +11,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using postgres;
 using postgres.Pgres2;
 using PublicCallers.Scheduling;
-using scheduling;
 
 namespace http
 {
@@ -89,8 +87,7 @@ namespace http
 
             services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
             services.AddSingleton<PgresUser>(PgresUserFromConfig(Conf));
-            services.AddScoped<IPublisherRepository, PublisherRepo>();
-            services.AddSingleton<IDataSource, PgresDb>();
+            services.AddSingleton<IDataSource, Postgres>();
             services.Configure<TwilioOptions>(Conf.GetSection("Twilio"));
 
             services.AddControllers();

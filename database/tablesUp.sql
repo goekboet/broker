@@ -2,7 +2,7 @@ CREATE TABLE hosts(
     sub UUID NOT NULL,
     handle text NOT NULL,
     name text NOT NULL,
-    PRIMARY KEY(sub),
+    PRIMARY KEY(sub, handle),
     CONSTRAINT unique_handle UNIQUE(handle)
 );
 

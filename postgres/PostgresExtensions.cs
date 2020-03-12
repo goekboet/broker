@@ -8,29 +8,7 @@ using PublicCallers.Scheduling;
 
 namespace postgres
 {
-    
-
-    public abstract class SqlResult<T> { }
-
-    public sealed class Success<T> : SqlResult<T>
-    {
-        public Success(T r)
-        {
-            Result = r;
-        }
-        public T Result { get; }
-    }
-
-    public sealed class Fail<T> : SqlResult<T>
-    {
-        public Fail(PostgresException e)
-        {
-            Exception = e;
-        }
-        public PostgresException Exception { get; }
-    }
-
-    public static class PGres
+    public static class PostgresExensions
     {
         public static async Task<IEnumerable<S>> SubmitQuery<S>(
             this NpgsqlCommand cmd,
@@ -51,33 +29,6 @@ namespace postgres
             }
 
             return rs;
-        }
-
-        public static async Task<SqlResult<T>> SubmitCommandReturning<T>(
-            this NpgsqlCommand cmd,
-            Func<IDataRecord, T> selector)
-        {
-            var r = default(T);
-            try
-            {
-                using (cmd)
-                {
-                    await cmd.Connection.OpenAsync();
-                    using (var rd = await cmd.ExecuteReaderAsync())
-                    {
-                        if (await rd.ReadAsync())
-                        {
-                            r = selector(rd);
-                        }
-                    }
-                }
-            }
-            catch (PostgresException e)
-            {
-                return new Fail<T>(e);
-            }
-
-            return new Success<T>(r);
         }
 
         public static async Task<int> SubmitCommand(

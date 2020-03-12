@@ -4,7 +4,6 @@ using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 using PublicCallers.Scheduling;
-using scheduling;
 
 namespace http.Publisher
 {
@@ -48,14 +47,12 @@ namespace http.Publisher
     {
         public ListPublishedTimes(
             Guid sub,
-            string handle,
             long from,
             long to)
         {
             Parameters = new (string n, object v)[]
                 {
                     ("sub", sub),
-                    ("handle", handle),
                     ("from", from),
                     ("to", to)
                 };
@@ -66,7 +63,6 @@ namespace http.Publisher
                 "select t.start, t.host, t.end, t.record, t.booked from times as t",
                 "join hosts as h on h.handle = t.host",
                 "where h.sub = @sub",
-                "and t.host = @handle",
                 "and t.start between @from and @to",
                 "order by start asc"
             });
@@ -100,7 +96,6 @@ namespace http.Publisher
     {
         public GetPublishedTime(
             Guid sub,
-            string host,
             long start
         )
         {
@@ -108,7 +103,6 @@ namespace http.Publisher
             {
                     ("sub", sub),
                     ("start", start),
-                    ("host", host)
             };
         }
         public string Sql { get; } = string.Join("\n", new[]
@@ -116,7 +110,6 @@ namespace http.Publisher
                 "select t.start, t.end, t.host, t.record, t.booked from times as t",
                 "join hosts as h on t.host = h.handle",
                 "where h.sub = @sub",
-                "and t.host = @host",
                 "and t.start = @start",
                 "order by start asc"
             });
@@ -150,7 +143,6 @@ namespace http.Publisher
     {
         public GetBookedPublishedTimes(
             Guid sub,
-            string handle,
             long from,
             long to
         )
@@ -158,7 +150,6 @@ namespace http.Publisher
             Parameters = new (string n, object v)[]
                 {
                     ("sub", sub),
-                    ("handle", handle),
                     ("from", from),
                     ("to", to)
                 };
@@ -166,10 +157,9 @@ namespace http.Publisher
 
         public string Sql { get; } = string.Join("\n", new[]
             {
-                "select t.start, t.end, t.record, t.booked from times as t",
+                "select t.start, t.host, t.end, t.record, t.booked from times as t",
                 "join hosts as h on h.handle = t.host",
                 "where h.sub = @sub",
-                "and t.host = @handle",
                 "and t.booked is not null",
                 "and t.start between @from and @to",
                 "order by start asc"
@@ -180,6 +170,7 @@ namespace http.Publisher
         BookedTime Parse(IDataRecord r) => 
             new BookedTime(
                 start: r.GetInt64(r.GetOrdinal("start")),
+                host: r.GetString(r.GetOrdinal("host")),
                 end: r.GetInt64(r.GetOrdinal("end")),
                 record: r.GetString(r.GetOrdinal("record")),
                 booker: r.GetGuid(r.GetOrdinal("booked")).ToString()

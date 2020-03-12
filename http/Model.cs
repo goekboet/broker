@@ -31,6 +31,9 @@ namespace http
         [JsonPropertyName("start")]
         public long Start { get; set; }
 
+        [JsonPropertyName("host")]
+        public string Host { get; set; }
+
         [JsonPropertyName("dur")]
         public int Dur { get; set; }
     }
@@ -68,32 +71,38 @@ namespace http
     public class PublishTimeJson
     {
         [JsonPropertyName("start")]
-        public long Start {get;set;}
-        
+        public long Start { get; set; }
+
+        [JsonPropertyName("handle")]
+        public string Handle { get; set; }
+
         [JsonPropertyName("name")]
-        public string Name {get;set;}
-        
+        public string Name { get; set; }
+
         [JsonPropertyName("end")]
-        public long End {get;set;}
+        public long End { get; set; }
 
         [JsonPropertyName("booked")]
-        public bool Booked {get;set;}
+        public bool Booked { get; set; }
     }
 
-    
+
 
     public class BookedTimeJson
     {
         [JsonPropertyName("start")]
-        public long Start {get;set;}
-        
+        public long Start { get; set; }
+
+        [JsonPropertyName("host")]
+        public string Host { get; set; }
+
         [JsonPropertyName("name")]
-        public string Name {get;set;}
-        
+        public string Name { get; set; }
+
         [JsonPropertyName("end")]
-        public long End {get;set;}
+        public long End { get; set; }
 
         [JsonPropertyName("booker")]
-        public string Booker {get;set;}
+        public string Booker { get; set; }
     }
 }

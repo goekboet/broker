@@ -7,14 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PublicCallers.Scheduling;
-using scheduling;
 
 namespace http.Publisher
 {
     [ApiController]
     public class PublishersController : ControllerBase
     {
-        IPublisherRepository _repo;
         ILogger<PublishersController> _log;
         TwilioOptions _twilio;
         IDataSource _db;
@@ -34,7 +32,6 @@ namespace http.Publisher
         }
 
         public PublishersController(
-            IPublisherRepository repo,
             ILogger<PublishersController> log,
             IOptions<TwilioOptions> opts,
             IDataSource db,
@@ -43,7 +40,6 @@ namespace http.Publisher
         {
             _db = db;
             _creds = creds;
-            _repo = repo;
             _log = log;
             _twilio = opts.Value;
         }
@@ -57,9 +53,9 @@ namespace http.Publisher
                 ? "handle must be text"
                 : string.Empty;
 
-            return string.Join(", ", 
+            return string.Join(", ",
                 from s in new[] { handle, name }
-                where s != string.Empty 
+                where s != string.Empty
                 select s);
         }
 
@@ -75,18 +71,22 @@ namespace http.Publisher
                 return BadRequest();
             }
 
-            var created = await _repo.AddPublisher(GetUserId(), new NewHost(p.Handle, p.Name));
+            var addPublisher = new AddPublisher(
+                sub: GetUserId(),
+                handle: p.Handle,
+                name: p.Name
+            );
+            var result = await _db.SubmitCommand(
+                _creds,
+                addPublisher);
 
-            switch (created)
+            if (result == 1)
             {
-                case scheduling.Accepted<NewHost> a:
-                    return a.Value == null
-                        ? Conflict() as ActionResult
-                        : Created($"publishers", a.Value);
-                case scheduling.Conflict<NewHost> c:
-                    return Conflict();
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(created));
+                return Created($"publishers/{p.Handle}", p);
+            }
+            else
+            {
+                return Conflict();
             }
         }
 
@@ -100,47 +100,88 @@ namespace http.Publisher
             return Ok(result);
         }
 
-        // [HttpGet("publishers/{name}")]
-        // [Authorize("publish")]
-        // public async Task<ActionResult> GetHost(string name)
-        // {
-        //     var sub = User.Claims.First(x => x.Type == "sub").Value;
-        //     var r = (await _repo.GetPublisher(Guid.Parse(sub)));
-
-        //     var p = r.SingleOrDefault();
-        //     return p == null
-        //         ? NotFound()
-        //         : Ok(p) as ActionResult;
-        // }
-
-        [HttpPost("publishers/{handle}/times")]
+        [HttpGet("publishers/{handle}")]
         [Authorize("publish")]
-        public async Task<ActionResult> PublishTime(
-            string handle,
-            PublishTimeJson payload)
+        public async Task<ActionResult> GetHost(
+            string handle)
         {
-            var sub = GetUserId();
-            await _repo.AddTime(sub, new PublishedTime(
-                start: payload.Start,
-                end: payload.End,
-                hostHandle: handle,
-                record: payload.Name
-            ));
+            var found = new GetHandle(
+                sub: GetUserId(),
+                handle: handle
+            );
+            var r = (await _db.Submit(_creds, found))
+                .SingleOrDefault();
 
-            return Created($"hosts/{handle}/times/{payload.Start}", payload);
+            if (r != null)
+            {
+                return Ok();
+            }
+            else
+            {
+                return NotFound();
+            }
         }
 
-        [HttpGet("publishers/{handle}/times")]
+        [HttpPost("times")]
+        [Authorize("publish")]
+        public async Task<ActionResult> PublishTime(
+            PublishTimeJson payload)
+        {
+            var getHost = new GetHandle(
+                sub: GetUserId(),
+                handle: payload.Handle
+            );
+            var foundHost = (await _db.Submit(_creds, getHost))
+                .SingleOrDefault();
+            if (foundHost == null)
+            {
+                return NotFound();
+            }
+
+            var getConflict = new PublishedTimeConflict(
+                sub: GetUserId(),
+                start: payload.Start,
+                end: payload.End
+            );
+            var conflict = (await _db.Submit(_creds, getConflict))
+                .SingleOrDefault();
+
+            if (conflict != null)
+            {
+                return Conflict();
+            }
+
+            var addTime = new AddTime(
+                sub: GetUserId(),
+                t: new PublishedTime(
+                    start: payload.Start,
+                    end: payload.End,
+                    hostHandle: payload.Handle,
+                    record: payload.Name
+                )
+            );
+            var r = await _db.SubmitCommand(_creds, addTime);
+
+            if (r == 1)
+            {
+                return Created($"times/{payload.Start}", payload);
+            }
+            else
+            {
+                _log.LogWarning($"Failed to insert time for {payload.Handle}/{payload.Start}");
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("times")]
         [Authorize("publish")]
         public async Task<ActionResult> ListPublishedTimes(
-            string handle,
             long from,
             long to
         )
         {
             var query = new ListPublishedTimes(
                 sub: GetUserId(),
-                handle: handle,
                 from: from,
                 to: to
             );
@@ -150,50 +191,49 @@ namespace http.Publisher
                       select new PublishTimeJson
                       {
                           Start = p.Start,
+                          Handle = p.HostHandle,
                           End = p.End,
                           Name = p.Record,
                           Booked = p.Booked.HasValue
                       });
         }
 
-        [HttpGet("publishers/{handle}/times/{start}")]
+        [HttpGet("times/{start}")]
         [Authorize("publish")]
         public async Task<ActionResult> GetPublishedTime(
-            string handle,
             long start
         )
         {
             var sub = GetUserId();
             var query = new GetPublishedTime(
                 sub: sub,
-                host: handle, 
                 start: start
             );
             var r = await _db.Submit(_creds, query);
-            var result = r.Single(); 
+            var result = r.Single();
 
             var token = _twilio.GetTwilioToken(sub.ToString(), result.HostHandle, result.Start);
+
             return Ok(
                 new AppointmentJson
                 {
                     Start = result.Start,
+                    Host = result.HostHandle,
                     Dur = (int)((result.End - result.Start) / 60),
                     Counterpart = result.Booked?.ToString(),
                     Token = token
                 });
         }
 
-        [HttpGet("publishers/{handle}/bookings")]
+        [HttpGet("appointments")]
         [Authorize("publish")]
         public async Task<ActionResult> GetBookedTimes(
-            string handle,
             long from,
             long to
         )
         {
             var query = new GetBookedPublishedTimes(
                 sub: GetUserId(),
-                handle: handle,
                 from: from,
                 to: to
             );
@@ -203,6 +243,7 @@ namespace http.Publisher
                       select new BookedTimeJson
                       {
                           Start = p.Start,
+                          Host = p.Host,
                           End = p.End,
                           Name = p.Record,
                           Booker = p.Booker

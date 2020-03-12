@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Npgsql;
+using postgres.Pgres2;
 using PublicCallers.Scheduling;
 
 namespace postgres.Pgres2
 {
-    public class PgresDb : IDataSource
+    public class Postgres : IDataSource
     {
         public async Task<IEnumerable<T>> Submit<T>(
             PgresUser creds,
@@ -18,7 +19,7 @@ namespace postgres.Pgres2
 
             IEnumerable<T> r = Enumerable.Empty<T>();
             await c.OpenAsync();
-            
+
             using var rd = await cmd.ExecuteReaderAsync();
             r = await q.Read(rd);
 
@@ -26,7 +27,7 @@ namespace postgres.Pgres2
         }
 
         public async Task<int> SubmitCommand(
-            PgresUser creds, 
+            PgresUser creds,
             ICommand command)
         {
             using var c = creds.ToConnection();

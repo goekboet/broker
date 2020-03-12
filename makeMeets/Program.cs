@@ -89,19 +89,10 @@ namespace makeMeets
 
         static int Main(string[] args)
         {
-            // var allDaysIn2020 = AllDatesInYear(2020)
-            //     .Select(x => x.ToString());
-
-            //Console.WriteLine(string.Join("\n", allDaysIn2020));
-
-            // var times = Times(new LocalTime(8, 0), 10, 8 / 10)
-            //     .Select(x => x.ToString());
-
-            //Console.WriteLine(string.Join("\n", times));
             var hosts = ReadHosts("hosts/hosts.csv");
             var times = hosts
                 .SelectMany(x => ForHost(x, 2020));
-            // Console.WriteLine(hosts.Count());
+
             Console.WriteLine(
                 string.Join("\n", 
                 (from t in times

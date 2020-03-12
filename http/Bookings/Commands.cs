@@ -4,7 +4,6 @@ using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 using PublicCallers.Scheduling;
-using scheduling;
 
 namespace http.Bookings
 {

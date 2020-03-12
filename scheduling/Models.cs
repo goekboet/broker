@@ -1,9 +1,58 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace scheduling
+namespace PublicCallers.Scheduling
 {
+    public class Host
+    {
+        public Host(
+            Guid id,
+            string name
+        )
+        {
+            Id = id;
+            Name = name;
+        }
+        
+        public Guid Id { get; }
+        public string Name { get; }
+    }
+
+    public class HostListing
+    {
+        public HostListing(
+            string handle,
+            string name
+        )
+        {
+            Handle = handle;
+            Name = name;
+        }
+        
+        public string Handle { get; }
+        public string Name { get; }
+    }
+
+    public class Time
+    {
+        public Time(
+            long start,
+            string name,
+            string host,
+            long end
+            )
+        {
+            Start = start;
+            Name = name;
+            Host = host;
+            End = end;
+        }
+
+        public long Start { get; }
+        public string Name { get; }
+        public string Host { get; }
+        public long End { get; }
+    }
+
     public class PublishedTime
     {
         public PublishedTime(
@@ -32,18 +81,21 @@ namespace scheduling
     {
         public BookedTime(
             long start,
+            string host,
             long end,
             string record,
             string booker
         )
         {
             Start = start;
+            Host = host;
             End = end;
             Record = record;
             Booker = booker;
         }
 
         public long Start { get; }
+        public string Host { get; }
         public long End { get; }
         public string Record { get; }
         public string Booker {get;}
@@ -78,32 +130,5 @@ namespace scheduling
         public string Handle { get; }
         public long Start {get;}
         public long End {get;}
-    }
-
-    public abstract class AddHostResult<T>
-    {
-    }
-
-    public sealed class Accepted<T> : AddHostResult<T>
-    {
-        public Accepted(T v)
-        {
-            Value = v;
-        }
-
-        public T Value {get;}
-    }
-
-    public sealed class Conflict<T> : AddHostResult<T>
-    {
-        public static Conflict<T> Instance {get;} = new Conflict<T>();
-    }
-
-    public interface IPublisherRepository
-    {
-        // GET    hosts/{id}/times?from={from}&to={to}
-        Task AddTime(Guid sub, PublishedTime t);
-
-        Task<AddHostResult<NewHost>> AddPublisher(Guid sub, NewHost h);
     }
 }
