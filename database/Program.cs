@@ -20,7 +20,10 @@ namespace database
             var jsonconfig = File.ReadAllText("config.json");
             var schema = File.ReadAllText("tablesUp.sql");
             var creds = JsonSerializer.Deserialize<PgresUser>(jsonconfig);
-            var dbname = $"test_broker_{Random}";
+            var  dbname = args.Length > 0
+                ? args[0]
+                : $"test_broker_{Random}";
+            
             var newDb = creds.ToConnection(false).NewTestDatabase(dbname);
 
             var newDbR = await newDb.SubmitCommand();

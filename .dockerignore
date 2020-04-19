@@ -1,5 +1,8 @@
 **/bin
 **/obj
 
-test.http
+unittests
 makeMeets
+wordlists
+database
+broker_auth

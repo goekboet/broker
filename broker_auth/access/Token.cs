@@ -18,8 +18,7 @@ namespace cli
         public static async Task<Access> FetchToken(
             ServiceProvider sp,
             long now,
-            string email,
-            string password
+            Creds creds
         )
         {
             using var scope = sp.CreateScope();
@@ -28,9 +27,9 @@ namespace cli
             {
                 Id = Guid.NewGuid().ToString(),
                 UserName = Guid.NewGuid().ToString(),
-                Email = email
+                Email = creds.Email
             };
-            await usrmgr.CreateAsync(user, password);
+            await usrmgr.CreateAsync(user, creds.Password);
             
             var idpclient = new HttpClient();
             var idpreply = await idpclient.RequestPasswordTokenAsync(
@@ -42,8 +41,8 @@ namespace cli
                     ClientSecret = "dev",
                     Scope = "openid bookings publish offline_access",
 
-                    UserName = email,
-                    Password = password
+                    UserName = creds.Email,
+                    Password = creds.Password
                 });
 
             if (idpreply.IsError)
@@ -92,20 +91,20 @@ namespace cli
         public static async Task<Access> GetAccess(
             ServiceProvider sp,
             long now,
-            string usr)
+            Creds creds)
         {
-            var access = await TokenStore.Read(usr);
+            var access = await TokenStore.Read(creds.Email);
             if (access == null)
             {
-                access = await FetchToken(sp, now, usr, RandomRwd);
-                await TokenStore.Write(usr, access);
+                access = await FetchToken(sp, now, creds);
+                await TokenStore.Write(creds.Email, access);
             }
 
             var refreshThreshold = DateTimeOffset.Now.Subtract(TimeSpan.FromMinutes(5));
             if (access.ValidTo < refreshThreshold.ToUnixTimeMilliseconds())
             {
                 access = await Refresh(access);
-                await TokenStore.Write(usr, access);
+                await TokenStore.Write(creds.Email, access);
             }
 
             return access;

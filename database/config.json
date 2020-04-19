@@ -1,7 +1,7 @@
 {
     "Host": "localhost",
     "Port": "5432",
-    "Handle": "broker_test",
-    "Pwd": "QS3hXvWYVdBRZ7F9",
-    "Db": "broker_test"
+    "Handle": "postgres",
+    "Pwd": "2dWp8YkR5LxKQXh2",
+    "Db": "postgres"
 }

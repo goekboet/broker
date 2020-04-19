@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace http
 {
+    
     public class TimeJson
     {
         [JsonPropertyName("host")]
@@ -37,6 +38,7 @@ namespace http
         [JsonPropertyName("dur")]
         public int Dur { get; set; }
     }
+    
 
     public class HostJson
     {
@@ -105,4 +107,12 @@ namespace http
         [JsonPropertyName("booker")]
         public string Booker { get; set; }
     }
+
+    // public class TimeJson
+    // {
+    //     public long Start { get; }
+    //     public string Name { get; }
+    //     public string Host { get; }
+    //     public long End { get; }
+    // }
 }

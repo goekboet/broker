@@ -21,7 +21,7 @@ namespace cli
      )
         {
             var creds = Creds.RandomUser();
-            return Token.FetchToken(sp, now, creds.Email, creds.Password);
+            return Token.FetchToken(sp, now, creds);
         }
 
 
@@ -40,15 +40,16 @@ namespace cli
             collection.AddLogging();
             var sp = collection.BuildServiceProvider();
 
-            var usr = Creds.RandomUser().Email;
+            var seed = Creds.RandomUser();
+            var usr = seed.Email;
             if (args.Length > 0)
             {
                 usr = args[0];
             }
-            Console.WriteLine($"token: {usr}");
+            Console.WriteLine($"username: {seed.Email} pwd: {seed.Password}");
 
             var now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            var access = await Token.GetAccess(sp, now, usr);
+            var access = await Token.GetAccess(sp, now, seed);
 
             Console.WriteLine(access.Accesstoken);
             return 0;

@@ -89,7 +89,13 @@ namespace http.Bookings
 
                 return Created(
                     $"bookings/{getTimeResult.Start}", 
-                    r.Single());
+                    r.Select(x => new TimeJson
+                    {
+                        Host = x.Host,
+                        Name = x.Name,
+                        Start = x.Start,
+                        Dur = (int)((x.End - x.Start) / 60)   
+                    }).Single());
             }
             else
             {
